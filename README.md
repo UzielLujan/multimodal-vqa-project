@@ -104,5 +104,7 @@ El proyecto se encuentra en fase de organización inicial. Próximos pasos:
 ## **Autores**
 
 - **Uziel Isaí Luján López**  
-- **Diego Paniagua Molina**  
+- **Diego Paniagua Molina**     
 
+## 📌 Estado
+📍 En desarrollo – versión inicial del proyecto.  
