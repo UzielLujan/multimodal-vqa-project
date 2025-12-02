@@ -8,20 +8,24 @@
 
 Este documento presenta el protocolo oficial para el desarrollo del proyecto final de la materia **Procesamiento de Texto e Imágenes con Deep Learning**, cuyo objetivo es implementar y evaluar un sistema multimodal moderno de **Visual Question Answering (VQA)** aplicado a imágenes histopatológicas.
 
-El proyecto toma como referencia conceptual el paper compartido por el profesor: *Evaluating Low-Cost Multimodal (Visual and Textual) Language Models for Automated Image Understanding in Computational Pathology*, utilizando únicamente los elementos permitidos:
+El proyecto toma como referencia conceptual el paper: *Evaluating Low-Cost Multimodal (Visual and Textual) Language Models for Automated Image Understanding in Computational Pathology*, utilizando únicamente los elementos permitidos:
 
 * El dataset **PathVQA**.
 * Las métricas **BLEU** y **CIDEr**.
 
-Sin embargo, se propone una mejora metodológica mediante el uso de modelos multimodales modernos basados en **Vision–Language Models (VLMs)**, especialmente **LLaVA 1.5 (SigLIP + LLaMA‑3) con LoRA**, eliminando etapas pesadas como OCR y creación manual de datasets.
+Sin embargo, se propone una mejora metodológica mediante el uso de modelos multimodales modernos basados en **Vision–Language Models (VLMs)**, específicamente **LLaVA 1.5 (SigLIP + LLaMA‑3) con LoRA**, eliminando propuestas anteriores que incluían etapas pesadas como OCR y creación manual de datasets.
 
-El protocolo define la estructura oficial del proyecto, su motivación, metodología, métricas, alcance y diseño experimental.
+El protocolo define la estructura oficial del proyecto, su motivación, metodología, métricas, alcance y diseño experimental, enfocandose en el nucleo multimodal:
+
+```bash
+Imagen histopatológica + Pregunta → Modelo Multimodal → Respuesta generada
+```
 
 ---
 
 ## **2. Objetivo General**
 
-Desarrollar, implementar y evaluar un sistema multimodal avanzado para **Visual Question Answering** en imágenes histopatológicas, utilizando arquitecturas modernas de visión–lenguaje (principalmente **LLaVA 1.5**) y el dataset **PathVQA**, comparando el rendimiento frente a un baseline clásico.
+Desarrollar, implementar y evaluar un sistema multimodal moderno para **Visual Question Answering** en imágenes histopatológicas, utilizando arquitecturas recientes de visión–lenguaje (principalmente **LLaVA 1.5**) y el dataset **PathVQA**, para producir respuestas clínicas plausibles ante preguntas derivadas de imágenes histopatológicas.
 
 ---
 
@@ -46,21 +50,24 @@ El uso de estos modelos permite construir un sistema robusto, reproducible y con
 ---
 
 ## **4. Definición del Problema**
+El problema de VQA consiste en que dado un par:
+* **Imagen histopatológica**
+* **Pregunta en lenguaje natural**
 
-Dado un par **(imagen histopatológica, pregunta en lenguaje natural)**, el sistema debe generar una **respuesta correcta y clínicamente coherente**.
+el sistema debe generar una **respuesta correcta y clínicamente coherente**.
 
-Los tipos de preguntas presentes en PathVQA incluyen:
+Los tipos de preguntas presentes en el dataset PathVQA incluyen:
 
 * Sí/No,
 * What / Where / How,
 * identificación anatómica,
-* conteo de estructuras,
+* conteo de elementos,
 * hallazgos diagnósticos.
 
-**Ejemplo:**
+**Ejemplo simulado:**
 
-```text
-Imagen: corte histológico de riñón
+```bash
+Imagen: Corte histológico de riñón
 Pregunta: "¿Se observan membranas basales engrosadas?"
 Respuesta esperada: "Sí"
 ```
@@ -69,23 +76,24 @@ Respuesta esperada: "Sí"
 
 ## **5. Dataset: PathVQA**
 
-**Fuente:** Hugging Face → `flaviagiammarino/path-vqa`
+**Fuente:** Hugging Face → `flaviagiammarino/path-vqa`. 
+[https://huggingface.co/datasets/flaviagiammarino/path-vqa](https://huggingface.co/datasets/flaviagiammarino/path-vqa)
 
 Características principales:
 
 * ~5,000 imágenes histopatológicas,
 * 32,799 pares pregunta–respuesta,
-* preguntas de diversos tipos (binarias, abiertas, anatómicas, etc.),
-* división estándar train/validation/test.
+* Preguntas de diversos tipos (binarias, abiertas, anatómicas, etc.),
+* División estándar train/validation/test.
 
-Ejemplos reales:
+Ejemplos reales del dataset:
 
-```text
+```bash
 Pregunta: "where are liver stem cells (oval cells) located?"
 Respuesta: "in the canals of hering"
 ```
 
-```text
+```bash
 Pregunta: "is embolus derived from a lower-extremity venous thrombus lodged in a pulmonary..."
 Respuesta: "yes"
 ```
@@ -96,20 +104,20 @@ Respuesta: "yes"
 
 ### **6.1. Modelo Moderno Propuesto (LLaVA 1.5)**
 
-El modelo principal del proyecto será **LLaVA 1.5**, compuesto por:
+El modelo seleccionado para este proyecto es **LLaVA 1.5**, una arquitectura moderna de visión–lenguaje compuesta por:
 
-* **SigLIP** como encoder visual,
-* **MLP multimodal** como proyector imagen→lenguaje,
+* **SigLIP** como encoder visual SOTA,
+* **MLP multimodal** como proyector imagen → lenguaje,
 * **LLaMA‑3** como modelo de lenguaje generativo,
 * **LoRA** para fine‑tuning eficiente.
 
 **Pipeline:**
 
-```
+```bash
 Imagen → SigLIP → Proyector MLP → LLaMA‑3 → Respuesta
 ```
 
-Este modelo ofrece un desempeño notable en tareas de VQA, con una arquitectura más robusta y moderna que el enfoque clásico del paper (CLIP + GPT‑2 + prefix‑tuning).
+Este modelo ofrece un desempeño notable en tareas de VQA, con una arquitectura más robusta y moderna que el enfoque clásico del paper (CLIP + GPT‑2 + prefix‑tuning), a cual presenta limitaciones de compatibilidad, capacidad de razonamiento y desempeño general.
 
 ---
 
@@ -117,8 +125,8 @@ Este modelo ofrece un desempeño notable en tareas de VQA, con una arquitectura 
 
 Para fines comparativos se puede incluir un baseline minimalista inspirado en el paper original:
 
-* Encoder: **CLIP/OpenCLIP**,
-* Proyector lineal,
+* Encoder visual: **CLIP/OpenCLIP**,
+* Proyector lineal MLP,
 * Decoder pequeño (GPT‑2 o similar).
 
 Esto establece un piso de desempeño desde el cual evaluar la ganancia obtenida con LLaVA.
@@ -136,7 +144,7 @@ Estas preguntas requieren métricas específicas:
 
 ### **7.2. Preguntas Abiertas (What/Where/How)**
 
-Las métricas solicitadas por el profesor serán utilizadas:
+Las métricas sugeridas por el profesor serán utilizadas:
 
 * **BLEU**,
 * **CIDEr**.
@@ -158,19 +166,19 @@ Implementación mínima con CLIP + GPT‑2 o CLIP + MLP.
 
 ### **Experimento 2 — Modelo Moderno (LLaVA 1.5)**
 
-Evaluación completa del pipeline multimodal con LoRA.
+Evaluación e Implementación de **LLaVA 1.5 + LoRA**, completa sobre **PathVQA**.
 
 ### **Experimento 3 — Comparativa Final**
 
-* Baseline vs LLaVA 1.5,
-* Desempeño por tipo de pregunta,
+* Baseline vs LLaVA 1.5 (opcional o comparando con resultados reportados en el paper original).
+* Desempeño por tipo de pregunta.
 * Análisis de errores y casos difíciles.
 
 ---
 
 ## **9. Resultados Esperados**
 
-* Mejoras tangibles en BLEU y CIDEr usando LLaVA 1.5.
+* Mejoras claras en BLEU y CIDEr usando LLaVA 1.5 frente al baseline del paper original.
 * Alto desempeño en preguntas binarias mediante Accuracy y F1.
 * Modelos modernos capaces de razonamiento clínico básico.
 
@@ -178,7 +186,7 @@ Evaluación completa del pipeline multimodal con LoRA.
 
 ## **10. Conclusión Oficial**
 
-Este protocolo presenta la versión formal del proyecto final. El enfoque propuesto es moderno, eficiente y alineado con los lineamientos del profesor, integrando modelos de visión‑lenguaje SOTA como **LLaVA 1.5 (SigLIP + LLaMA‑3 + LoRA)** y métricas adecuadas para cada tipo de pregunta.
+Este protocolo presenta la versión oficial del proyecto final. El enfoque propuesto es moderno, eficiente y alineado con los lineamientos del curso, integrando modelos de visión‑lenguaje SOTA como **(SigLIP + LLaMA‑3 + LoRA)** y métricas adecuadas para cada tipo de pregunta.
 
 El resultado será un estudio multimodal robusto, comparativo y completamente reproducible.
 
