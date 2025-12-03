@@ -1,0 +1,24 @@
+project:
+  name: "vqa_path_project"
+  output_dir: "results/llava-pathvqa-lora"
+  logging_dir: "logs"
+
+paths:
+  # Rutas relativas a la raíz del proyecto
+  data_dir: "data/raw/path_vqa_hf"
+  vision_tower_path: "checkpoints/siglip_vision_tower"
+  # NOTA: En el cluster, cambiar esto a la ruta absoluta donde viven los pesos de LLaMA
+  llm_model_path: "meta-llama/Meta-Llama-3-8B-Instruct" 
+
+training:
+  batch_size: 2
+  grad_accumulation: 8
+  epochs: 3
+  learning_rate: 2.0e-4
+  fp16: true
+  max_length: 2048
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
