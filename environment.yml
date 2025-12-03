@@ -1,0 +1,56 @@
+name: vqa-env
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  # --- Core Python ---
+  # Sugiero mantener 3.10 para máxima compatibilidad con bitsandbytes/flash-attn
+  - python=3.10  
+  - pip
+
+  # --- PyTorch Ecosystem (GPU) ---
+  # Mantenemos tu config de CUDA 12.1 que ya sabes que funciona
+  - pytorch=2.2.2 
+  - pytorch-cuda=12.1
+  - torchvision       # ✨ Nuevo: Indispensable para procesar imágenes (tensores)
+
+  # --- Data Science Standard ---
+  - numpy>=1.25.2
+  - pandas
+  - matplotlib
+  - seaborn
+  - scikit-learn
+  - tqdm
+  
+  # --- Utilidades que te gustan ---
+  - rich              # ✨ Conservado: Para logs bonitos en terminal
+  - python-dotenv     # ✨ Conservado: Para manejar variables de entorno
+  - pyyaml            # Para leer tus configs/
+
+  # --- Pip Dependencies ---
+  - pip:
+      # === Deep Learning Core ===
+      # CRÍTICO: Actualizado de 4.38 -> >=4.41 para soporte de LLaVA
+      - transformers>=4.41.0  
+      - accelerate>=0.30.0
+      - datasets
+      
+      # === Eficiencia (LoRA & Quantization) ===
+      - peft              # Conservado
+      - bitsandbytes      # Conservado (para 4-bit loading)
+      
+      # === Procesamiento de Imágenes (Nuevo) ===
+      - pillow            # Manipulación básica de imágenes
+      - opencv-python     # A veces necesario para pre-procesamiento avanzado
+      
+      # === Métricas de Texto (Nuevo para VQA) ===
+      - evaluate
+      - sacrebleu         # Para BLEU
+      - rouge_score       # Para ROUGE-L
+      - bert_score        # Opcional, pero potente
+      - nltk              # Conservado
+
+      # === Tracking ===
+      - wandb             # Conservado

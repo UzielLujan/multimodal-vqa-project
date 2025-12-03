@@ -215,7 +215,7 @@ multimodal_vqa_project/
 │   ├── training/            # Bucles de entrenamiento (Trainer class, validación)
 │   ├── evaluation/          # Scripts de métricas (BLEU, CIDEr, Accuracy)
 │   └── utils/               # Funciones auxiliares (seeding, visualización, logger setup)
-├── scripts/                 # Scripts de bash para ejecutar experimentos en cluster de cómputo
+├── scripts/                 # Scripts de bash slurm para ejecutar experimentos en cluster de cómputo
 ├── train.py                 # Script principal de ejecución para entrenar
 ├── inference.py             # Script para generar respuestas sobre el test set
 ├── README.md
