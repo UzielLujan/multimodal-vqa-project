@@ -69,8 +69,8 @@ Se emplean métricas separadas por tipo de pregunta:
 
 ## **📁 Estructura Propuesta del Repositorio**
 
-```
-VQA/
+```bash
+multimodal_vqa_project/
 ├── data/
 │   ├── raw/
 │   └── processed/

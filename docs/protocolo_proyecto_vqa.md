@@ -192,8 +192,34 @@ El resultado será un estudio multimodal robusto, comparativo y completamente re
 
 ---
 
-## **Documento oficial del proyecto**
+## **Estructura propuesta de carpetas en el proyecto**
 
-Este archivo constituye la referencia central para todas las etapas de desarrollo e implementación del proyecto.
+```bash
+multimodal_vqa_project/
+├── configs/               # Archivos .yaml con hiperparámetros (LR, batch_size, LoRA r, etc.)
+├── checkpoints/           # Aquí se guardan los pesos (modelos .pt, adaptadores LoRA)
+├── data/
+│   ├── raw/                 # Datos originales (imágenes y JSONs de PathVQA)
+│   └── processed/           # Datasets tokenizados o tensores pre-procesados
+├── docs/
+│   ├── Protocolo_Proyecto_VQA.md
+│   ├── Bitacora_tecnica.md
+│   └── Indicaciones_Proyecto_final.md
+├── logs/                    # Logs de entrenamiento 
+├── notebooks/               # EDA y prototipado rápido
+├── results/                 # Salidas finales: Gráficas generadas, tablas de métricas, CSVs de predicciones
+├── src/
+│   ├── __init__.py
+│   ├── data/                # Loaders, transformaciones y clases Dataset custom
+│   ├── models/              # Definición de la arquitectura (LLaVA interface, peft config)
+│   ├── training/            # Bucles de entrenamiento (Trainer class, validación)
+│   ├── evaluation/          # Scripts de métricas (BLEU, CIDEr, Accuracy)
+│   └── utils/               # Funciones auxiliares (seeding, visualización, logger setup)
+├── scripts/                 # Scripts de bash para ejecutar experimentos en cluster de cómputo
+├── train.py                 # Script principal de ejecución para entrenar
+├── inference.py             # Script para generar respuestas sobre el test set
+├── README.md
+└── environment.yml          # Dependencias del proyecto
+```
 
 ---

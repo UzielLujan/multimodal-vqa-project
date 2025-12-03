@@ -200,6 +200,11 @@ sacct --jobs=152147 -o JobID,State,ExitCode
 ```bash
 scancel 152155
 ```
+- Revisar el estado de todos los trabajos en la partición GPU
+```bash 
+squeue -p GPU
+```
+
 ### 4. Revisar Logs y Archivos 
 
 - Ver el contenido de un log en tiempo real (muy útil para monitorear)
