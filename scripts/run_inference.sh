@@ -7,13 +7,11 @@
 #SBATCH --mem=0
 #SBATCH --time=04:00:00
 #SBATCH --output=logs/%x-%j.log
-#SBATCH --chdir=/home/est_posgrado_uziel.lujan/multimodal-vqa-project  <-- ¡ACTUALIZA ESTO!
+#SBATCH --chdir=/home/est_posgrado_uziel.lujan/multimodal-vqa-project 
 
 set -e
 
 mkdir -p logs
-source ~/.bashrc
-conda activate vqa-env
 
 CONFIG_FILE=${1:-"configs/train_config.yaml"}
 
