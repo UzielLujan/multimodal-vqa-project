@@ -67,25 +67,34 @@ Se emplean métricas separadas por tipo de pregunta:
 
 ---
 
-## **📁 Estructura Propuesta del Repositorio**
+## **Estructura Propuesta del Repositorio**
 
 ```bash
 multimodal_vqa_project/
+├── configs/               # Archivos .yaml con hiperparámetros (LR, batch_size, LoRA r, etc.)
+├── checkpoints/           # Aquí se guardan los pesos (modelos .pt, adaptadores LoRA)
 ├── data/
-│   ├── raw/
-│   └── processed/
+│   ├── raw/                 # Datos originales (imágenes y JSONs de PathVQA)
+│   └── processed/           # Datasets tokenizados o tensores pre-procesados
 ├── docs/
-│   ├── protocolo_proyecto_vqa.md
-│   └── documentacion.md
+│   ├── Protocolo_Proyecto_VQA.md
+│   ├── Bitacora_tecnica.md
+│   └── Indicaciones_Proyecto_final.md
+├── logs/                    # Logs de entrenamiento 
+├── notebooks/               # EDA y prototipado rápido
+├── results/                 # Salidas finales: Gráficas generadas, tablas de métricas, CSVs de predicciones
 ├── src/
-│   ├── loaders/
-│   ├── models/
-│   ├── training/
-│   └── evaluation/
-├── notebooks/
-├── results/
+│   ├── __init__.py
+│   ├── data/                # Loaders, transformaciones y clases Dataset custom
+│   ├── models/              # Definición de la arquitectura (LLaVA interface, peft config)
+│   ├── training/            # Bucles de entrenamiento (Trainer class, validación)
+│   ├── evaluation/          # Scripts de métricas (BLEU, CIDEr, Accuracy)
+│   └── utils/               # Funciones auxiliares (seeding, visualización, logger setup)
+├── scripts/                 # Scripts de bash slurm para ejecutar experimentos en cluster de cómputo
+├── train.py                 # Script principal de ejecución para entrenar
+├── inference.py             # Script para generar respuestas sobre el test set
 ├── README.md
-└── environment.yml
+└── environment.yml          # Dependencias del proyecto
 ```
 
 * `configs/`: Archivos YAML de configuración.
