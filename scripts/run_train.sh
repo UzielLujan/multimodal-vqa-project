@@ -7,7 +7,7 @@
 #SBATCH --mem=0
 #SBATCH --time=24:00:00
 #SBATCH --output=logs/%x-%j.log
-#SBATCH --chdir=/home/est_posgrado_uziel.lujan/multimodal_vqa_project  <-- ¡ACTUALIZA ESTO!
+#SBATCH --chdir=/home/est_posgrado_uziel.lujan/multimodal-vqa-project  <-- ¡ACTUALIZA ESTO!
 
 set -e  # El script se detiene si hay error, igual que en tu referencia
 
