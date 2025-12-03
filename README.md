@@ -88,6 +88,12 @@ multimodal_vqa_project/
 └── environment.yml
 ```
 
+* `configs/`: Archivos YAML de configuración.
+* `data/`: Datos procesados (PathVQA).
+* `checkpoints/`: Pesos del encoder visual (SigLIP).
+* `src/`: Código fuente modular.
+* `scripts/`: Scripts SLURM para el clúster Lab-SB.
+
 ---
 
 ## **Estado del Proyecto**
@@ -106,5 +112,20 @@ El proyecto se encuentra en fase de organización inicial. Próximos pasos:
 - **Uziel Isaí Luján López**  
 - **Diego Paniagua Molina**     
 
-## 📌 Estado
-📍 En desarrollo – versión inicial del proyecto.  
+##  Estado
+
+En desarrollo – versión inicial del proyecto.  
+
+## Despliegue en Clúster (Lab-SB)
+
+### 1. Preparación de Datos (Local)
+Los datos y el encoder visual ya están descargados en `data/raw` y `checkpoints/siglip_vision_tower`. Subir la carpeta completa `multimodal_vqa_project`.
+
+### 2. Configuración de LLaMA-3
+Como el clúster no tiene internet, **no intentes descargar LLaMA**.
+Edita `configs/train_config.yaml` y cambia la ruta de `llm_model_path` a la ubicación absoluta de los pesos en el clúster.
+
+```yaml
+paths:
+  # Ejemplo:
+  llm_model_path: "/home/est_posgrado_uziel.lujan/modelos/llama3-8b-hf"

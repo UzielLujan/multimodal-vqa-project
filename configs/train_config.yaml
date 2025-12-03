@@ -4,11 +4,12 @@ project:
   logging_dir: "logs"
 
 paths:
-  # Rutas relativas a la raíz del proyecto
+  # Rutas relativas dentro de TU proyecto nuevo
   data_dir: "data/raw/path_vqa_hf"
   vision_tower_path: "checkpoints/siglip_vision_tower"
-  # NOTA: En el cluster, cambiar esto a la ruta absoluta donde viven los pesos de LLaMA
-  llm_model_path: "meta-llama/Meta-Llama-3-8B-Instruct" 
+  # Ruta ABSOLUTA al proyecto viejo (para reciclar pesos)
+  # Verifica en el clúster si esa ruta sigue existiendo
+  llm_model_path: "/home/est_posgrado_uziel.lujan/DL-TextGen-TextClass/PartA/models/Meta-Llama-3-8B/snapshots/8cde5ca8380496c9a6cc7ef3a8b46a0372a1d920/"
 
 training:
   batch_size: 2
@@ -22,3 +23,12 @@ lora:
   r: 16
   alpha: 32
   dropout: 0.05
+
+inference:
+  # Ruta relativa al adapter guardado (se usará output_dir/final_adapter por defecto)
+  adapter_path: "results/llava-pathvqa-lora/final_adapter" 
+  batch_size: 1  # Recomendado 1 para generación segura (evita problemas de padding)
+  max_new_tokens: 128
+  temperature: 0.0  # 0.0 para respuestas deterministas (científico), >0 para creatividad
+  top_p: 0.9
+  predictions_file: "predictions.csv"
