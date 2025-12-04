@@ -26,7 +26,7 @@ def main():
     with open(config_path, "r") as f:
         cfg = yaml.safe_load(f)
     
-    print("🚀 Iniciando Pipeline de Entrenamiento")
+    print("Iniciando Pipeline de Entrenamiento")
 
     # 2. Preparar Modelo y Procesador
     model, processor = build_model_and_processor(cfg)

@@ -6,14 +6,16 @@ channels:
   - defaults
 dependencies:
   - python=3.10
+  # ANCLAJE 1: Numpy estricto desde Conda
+  - numpy=1.26.4
   - pip
   
-  # Core PyTorch (Fijamos versiones compatibles)
+  # ANCLAJE 2: Core PyTorch + Vision alineados
   - pytorch=2.2.2
   - torchvision=0.17.2
   - pytorch-cuda=12.1
   
-  # Data Science
+  # Data Science Standard
   - pandas
   - matplotlib
   - seaborn
@@ -21,26 +23,27 @@ dependencies:
   - tqdm
   - pyyaml
   
-  # Dependencias PIP (Aquí estaba el problema)
   - pip:
-      # FIX CRÍTICO: Numpy debe ser menor a 2.0 para PyTorch 2.x
+      # ANCLAJE 3: Prohibir a Pip actualizar Numpy
       - "numpy<2.0"
       
-      # Transformers Stack
+      # Hugging Face Stack
+      - huggingface-hub>=0.23.0
       - transformers>=4.41.0
-      # FIX CRÍTICO: Accelerate 0.30.1 es estable con PyTorch 2.2.2
+      - tokenizers>=0.19.1
+      # ANCLAJE 4: Versión compatible con Torch 2.2
       - accelerate==0.30.1  
       - datasets
       
-      # LoRA & Quantization
-      - peft
-      - bitsandbytes
-      
-      # Imaging
+      # ANCLAJE 5: Versiones estables para LLaVA y Quantization
+      - peft==0.11.1
+      - bitsandbytes==0.43.1
+      # TOKENIZADORES (VITAL PARA LLAMA/SIGLIP)
+      - sentencepiece
+      - protobuf
+      # Utils & Metrics
       - pillow
       - opencv-python
-      
-      # Metrics & Utils
       - evaluate
       - sacrebleu
       - rouge_score
