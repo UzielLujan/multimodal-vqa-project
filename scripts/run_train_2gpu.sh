@@ -22,8 +22,7 @@ echo "Job ID: $SLURM_JOB_ID | Node: $(hostname)"
 echo "Config: $CONFIG_FILE"
 echo "========================================================"
 
-# 4. Ejecutar
-echo "Iniciando entrenamiento en SINGLE GPU..."
-python -u train.py --config "$CONFIG_FILE"
+echo "Iniciando entrenamiento con torchrun..."
+torchrun --nproc_per_node=2 train.py --config "$CONFIG_FILE"
 
-echo "Entrenamiento completado."
+echo "✅ Entrenamiento completado."

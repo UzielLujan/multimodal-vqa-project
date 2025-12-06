@@ -199,7 +199,7 @@ multimodal_vqa_project/
 ├── configs/               # Archivos .yaml con hiperparámetros (LR, batch_size, LoRA r, etc.)
 ├── checkpoints/           # Aquí se guardan los pesos (modelos .pt, adaptadores LoRA)
 ├── data/
-│   ├── raw/                 # Datos originales (imágenes y JSONs de PathVQA)
+│   ├── raw/path_vqa_hf                 # Datos originales (imágenes y JSONs de PathVQA)
 │   └── processed/           # Datasets tokenizados o tensores pre-procesados
 ├── docs/
 │   ├── Protocolo_Proyecto_VQA.md
