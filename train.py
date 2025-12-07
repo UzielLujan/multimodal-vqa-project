@@ -106,6 +106,12 @@ def main():
         learning_rate=float(cfg["training"]["learning_rate"]),
         num_train_epochs=cfg["training"]["epochs"],
         
+        # --- 🛡️ AGREGADO AQUÍ ---
+        # Leemos del config, por defecto 0.0 si no existe
+        weight_decay=cfg["training"].get("weight_decay", 0.0),
+        warmup_ratio=cfg["training"].get("warmup_ratio", 0.0),
+        # ------------------------
+
         fp16=use_fp16,
         bf16=use_bf16,
         
@@ -122,8 +128,6 @@ def main():
         remove_unused_columns=False,
         ddp_find_unused_parameters=False,
         dataloader_pin_memory=True if torch.cuda.is_available() else False,
-        
-        # 🛡️ FIX SEGFAULT: Desactivar compilación si está activa por defecto en PyTorch 2.x
         torch_compile=False 
     )
 

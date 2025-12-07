@@ -1,12 +1,10 @@
 project:
   name: "vqa_tinyllama_clip_fft"
-  output_dir: "results/tinyllama-clip-fft"
-  logging_dir: "logs"
+  output_dir: "results/tinyllama-clip-768"
+  logging_dir: "logs/tinyllama-clip-768"
 
 paths:
-  data_dir: "data/raw/path_vqa_hf" 
-  
-  # RUTAS ACTUALIZADAS (La corrección vital)
+  data_dir: "data/raw/path_vqa_hf" # Ruta a los datos VQA 
   llm_model_path: "checkpoints/TinyLlama-1.1B-Chat"
   vision_tower_path: "checkpoints/clip-vit-large-patch14-336" 
 
@@ -16,13 +14,15 @@ training:
   grad_accumulation: 4      # Batch efectivo = 8. Este parametro ayuda a simular batches más grandes
   epochs: 3
   learning_rate: 2.0e-5     # FFT requiere learning rate más bajo que LoRA
-  
-  # Optimizaciones
   fp16: false               # Usar bf16 si la GPU es Ampere (A100/A10/3090), si no fp16: true
   bf16: true                # Recomendado para estabilidad numérica en entrenamiento
   max_length: 768          # Longitud máxima de secuencia (ajustar según necesidad)          
   gradient_checkpointing: false # Vital para ahorrar VRAM en FFT
-
+  # ✅ NUEVOS PARÁMETROS DE REGULARIZACIÓN
+  weight_decay: 0.01      # Ayuda a que los pesos no crezcan descontrolados (evita overfitting)
+  warmup_ratio: 0.03      # El 3% inicial de pasos sube el LR suavemente (evita picos de loss iniciales)
+  
+  
 lora: # (Esta sección ya no se usa en el código, pero no estorba si se queda)
   r: 128
   alpha: 256
