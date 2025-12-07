@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=vqa_infer
+#SBATCH --job-name=vqa_infer_eval
 #SBATCH --partition=GPU
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -19,6 +19,10 @@ echo "========================================================"
 echo "Job ID: $SLURM_JOB_ID | Inferencia VQA"
 echo "========================================================"
 
-python -u inference.py --config "$CONFIG_FILE"
+python -u src/evaluation/inference_eval.py --config "$CONFIG_FILE"
+
+# python -m src.evaluation.inference_eval --config configs/inference_config.yaml
+
+
 
 echo "Inferencia completada."

@@ -1,0 +1,27 @@
+paths:
+  model_dir: "results/tinyllama-clip-768/final_model"
+  data_dir: "data/raw/path_vqa_hf"
+  results_dir: "results"
+
+inference:
+  split: "validation"
+  index: -1
+  max_new_tokens: 15 # número máximo de tokens generados en la respuesta
+  trim_output: true
+  trim_words: 8 # número máximo de palabras en la respuesta
+  panel_layout: "paper"  # "horizontal", "vertical" o "paper"
+  font_size: 16
+  wrap_width: 50  
+  dpi: 150
+  save_images: true
+
+
+evaluation:
+  save_csv: true
+  csv_prefix: "predictions"
+  analyze_by_type: false   # se puede activar si agregamos análisis por categorías
+  top_k_errors: 20
+
+plots:
+  enabled: true
+  save_dir: "plots"
