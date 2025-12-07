@@ -1,0 +1,290 @@
+%% The first command in your LaTeX source must be the \documentclass command.
+%% Options: hf: enable header and footer.
+\documentclass[
+% twocolumn,
+% hf,
+]{ceurart}
+
+%% One can fix some overfulls
+%\sloppy
+
+
+%% Minted listings support
+%% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
+\usepackage{minted}
+%% auto break lines
+\setminted{breaklines=true}
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% Rights management information.
+%% CC-BY is default license.
+\copyrightyear{2025} % Actualizado para REST-MEX 2025
+\copyrightclause{Copyright for this paper by its authors.
+  Use permitted under Creative Commons License Attribution 4.0
+  International (CC BY 4.0).}
+
+%%
+%% This command is for the conference information
+\conference{}
+
+
+%%
+%% The "title" command
+\title{Modelos Multimodales para Visual Question Answering en Imágenes Histopatológicas}
+% \subtitle{Clasificación de Polaridad, Tipo de Destino e Identificación de Pueblos Mágicos} % Subtítulo opcional
+
+% \tnotemark[1] % Si necesitas una nota para el título
+% \tnotetext[1]{Este trabajo fue parcialmente financiado por XYZ.}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+
+% --- Equipo ---
+\author[1]{Uziel Lujan Lopez}[
+orcid=0009-0001-3160-5294,
+email=uziel.lujan@cimat.mx,
+]\fnmark[1]
+
+\author[1]{Diego Paniagua-Molina}[
+orcid=0009-0006-6564-2794,
+email=diego.paniagua@cimat.mx,
+]\fnmark[1]
+
+
+% --- Afiliaciones ---
+\address[1]{Mathematics Research Center (CIMAT—Centro de Investigación en Matemáticas), Graduate Program in Statistical Computing, Nuevo León, Mexico}
+
+
+
+%% Footnotes
+%\cortext[1]{Corresponding author.}
+\fntext[1]{Estos autores contribuyeron de igual manera.}
+
+
+%% Maximo 250 palabras, donde se describa el problema abordado, la base de datos empleada, los métodos utilizados, los resultados obtenidos y las conclusiones principales.
+\begin{abstract}
+El Visual Question Answering (VQA) en imágenes histopatológicas representa un reto fundamental para la inteligencia artificial médica, al requerir la integración de señales visuales complejas y razonamiento en lenguaje natural. En este trabajo se aborda el problema de construir un sistema VQA robusto bajo restricciones reales de hardware, utilizando el dataset PathVQA (32,632 pares pregunta-respuesta sobre 4,289 imágenes). Se implementó una arquitectura multimodal basada en CLIP-ViT-Large como encoder visual y TinyLlama-1.1B como modelo de lenguaje, conectados mediante un proyector MLP y entrenados con Full Fine-Tuning. El pipeline fue adaptado para ejecutarse eficientemente en un clúster con GPUs de 24GB VRAM, superando los bloqueos de memoria y compatibilidad que impidieron el uso de LLaMA-3 y SigLIP. Los resultados preliminares muestran que, incluso con modelos compactos, es posible obtener respuestas clínicamente coherentes y métricas competitivas en VQA médico. Este trabajo demuestra la viabilidad de soluciones accesibles y reproducibles para tareas avanzadas de IA en salud, abriendo la puerta a futuras optimizaciones y aplicaciones clínicas.
+\end{abstract}
+
+%%
+%% Entre 3 y 5.
+\begin{keywords}
+Visual Question Answering, PathVQA, TinyLlama, CLIP, Full Fine-Tuning, Histopathology
+\end{keywords}
+
+\maketitle
+
+%--------------------------------------------------------------------------
+%	CUERPO DEL ARTÍCULO
+%--------------------------------------------------------------------------
+
+% Incluir al menos una pregunta de investigación y formular los objetivos del proyecto bajo la metodologı́a SMART (especı́ficos, medibles, alcanzables, relevantes y con lı́mite de tiempo).
+\section{Introducción}
+
+El análisis automatizado de imágenes médicas ha experimentado una revolución con la llegada del aprendizaje profundo. En particular, la tarea de Visual Question Answering (VQA) en el dominio de la histopatología presenta un desafío único: requiere no solo el reconocimiento de patrones visuales complejos en tejidos, sino también la capacidad de razonar sobre ellos y comunicar hallazgos en lenguaje natural.
+
+Si bien existen enfoques previos que combinan encoders visuales como CLIP con decoders de texto simples, estos modelos a menudo carecen de la capacidad de razonamiento profundo. Inicialmente, este proyecto propuso abordar estas limitaciones mediante una arquitectura de vanguardia basada en \textbf{LLaMA-3 (8B)} y el encoder visual \textbf{SigLIP}, ajustados mediante \textbf{LoRA}. Sin embargo, durante la fase experimental, esta configuración enfrentó barreras críticas de infraestructura en el clúster de supercómputo Lab-SB del CIMAT.
+
+El entorno disponible consistía en un nodo de cómputo equipado con tarjetas NVIDIA Titan (24GB VRAM), sin acceso a internet en los nodos de ejecución. A pesar de aplicar técnicas de cuantización de 4-bits, el modelo LLaMA-3 excedía la memoria disponible al cargar los gradientes y estados del optimizador, resultando en errores persistentes de \textit{CUDA Out of Memory (OOM)}. Adicionalmente, se presentaron incompatibilidades técnicas en la integración de SigLIP con la arquitectura LLaVA, lo que impedía un entrenamiento efectivo.
+
+Como respuesta a estos desafíos, el proyecto evolucionó hacia una solución optimizada y robusta: la implementación de una arquitectura basada en \textbf{TinyLlama-1.1B} como modelo de lenguaje y \textbf{CLIP-ViT-Large} como encoder visual. Esta configuración, entrenada mediante \textbf{Full Fine-Tuning (FFT)}, permite equilibrar la capacidad de razonamiento con la eficiencia computacional, garantizando la estabilidad del entrenamiento dentro de los 24GB de VRAM disponibles.
+
+\subsection{Pregunta de Investigación}
+Este trabajo busca responder la siguiente interrogante:
+\textit{¿Es posible construir un sistema VQA multimodal eficiente y clínicamente coherente para histopatología utilizando modelos compactos (TinyLlama-1.1B) y encoders visuales estándar (CLIP), superando las limitaciones de infraestructura que restringen el uso de LLMs masivos?}
+
+\subsection{Objetivos del Proyecto (SMART)}
+El objetivo general es desarrollar y evaluar un sistema VQA para imágenes histopatológicas adaptado a recursos limitados. Desglosado bajo la metodología SMART:
+
+\begin{itemize}
+    \item \textbf{Específico (S):} Implementar una arquitectura VQA multimodal integrando TinyLlama-1.1B y CLIP-ViT-Large, utilizando una estrategia de Full Fine-Tuning para asegurar la convergencia y estabilidad del modelo.
+    \item \textbf{Medible (M):} Evaluar el desempeño del modelo utilizando el dataset PathVQA, midiendo Accuracy y F1-score para preguntas cerradas (Sí/No), y métricas de generación de texto (BLEU, CIDEr) para preguntas abiertas.
+    \item \textbf{Alcanzable (A):} Superar las restricciones de hardware (VRAM) mediante la selección de componentes eficientes y técnicas de optimización (gradient accumulation), logrando un entrenamiento exitoso donde arquitecturas más grandes (LLaMA-3) fallaron.
+    \item \textbf{Relevante (R):} Validar la viabilidad de modelos de lenguaje compactos en la patología digital, demostrando que es posible obtener resultados útiles sin requerir infraestructura de hiperescala.
+    \item \textbf{Con límite de tiempo (T):} Completar la implementación del pipeline optimizado, el entrenamiento del modelo y la generación del reporte de evaluación antes del 5 de diciembre de 2025.
+\end{itemize}
+
+
+\section{Gestión y Planeación del Proyecto}
+
+Para asegurar la entrega exitosa del proyecto dentro del plazo establecido, se definieron roles claros y se estructuraron las actividades utilizando herramientas de gestión de proyectos, adaptándose a los desafíos técnicos encontrados.
+
+% Roles y responsabilidades
+\subsection{Matriz RACI}
+Se asignaron responsabilidades específicas a los integrantes del equipo, Uziel Luján (U) y Diego Paniagua (D), para optimizar la colaboración. Uziel se enfocó en la ingeniería del modelo y el entrenamiento en el clúster, mientras que Diego lideró el análisis de métricas y la documentación. La matriz de asignación de responsabilidades (RACI) se detalla en la Tabla \ref{tab:raci}.
+
+\begin{table}[h]
+\centering
+\caption{Matriz RACI del Proyecto (R: Responsable, A: Aprobador, C: Consultado, I: Informado)}
+\label{tab:raci}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Actividad} & \textbf{Uziel (U)} & \textbf{Diego (D)} \\ \hline
+Diseño de Arquitectura (TinyLlama + CLIP) & R/A & C \\ \hline
+Configuración de Entorno en Clúster & R & I \\ \hline
+Preprocesamiento de Datos (PathVQA) & C & R \\ \hline
+Entrenamiento del Modelo (FFT) & R & I \\ \hline
+Evaluación de Métricas (BLEU, Accuracy) & I & R \\ \hline
+Redacción del Reporte Técnico & C & R/A \\ \hline
+\end{tabular}
+\end{table}
+
+% Diagrama de actividades
+\subsection{Método PERT}
+El diagrama de evaluación y revisión de programas (PERT) se diseñó para identificar las dependencias entre tareas. La secuencia lógica establecida fue:
+\begin{enumerate}
+    \item \textbf{Investigación:} Revisión del estado del arte y selección de modelos (TinyLlama, CLIP).
+    \item \textbf{Implementación:} Desarrollo del pipeline de datos y arquitectura del modelo.
+    \item \textbf{Experimentación:} Pruebas de concepto y resolución de problemas de infraestructura (OOM).
+    \item \textbf{Entrenamiento:} Ejecución del Full Fine-Tuning en el clúster.
+    \item \textbf{Evaluación:} Cálculo de métricas y análisis de resultados.
+    \item \textbf{Cierre:} Documentación final.
+\end{enumerate}
+
+% WBS
+\subsection{Estructura de Desglose del Trabajo (WBS)}
+El proyecto se descompuso en los siguientes paquetes de trabajo principales:
+\begin{itemize}
+    \item \textbf{1. Gestión de Datos:} Descarga de PathVQA, conversión de formatos y creación de dataloaders.
+    \item \textbf{2. Ingeniería de Modelos:} Integración de TinyLlama-1.1B con CLIP-Large, adaptación de dimensiones de embeddings y configuración del tokenizador.
+    \item \textbf{3. Infraestructura y Entrenamiento:} Configuración de scripts SLURM, gestión de memoria VRAM y ejecución de ciclos de entrenamiento.
+    \item \textbf{4. Aseguramiento de Calidad:} Validación de inferencia, cálculo de métricas automáticas (BLEU, ROUGE, CIDEr) y revisión manual de respuestas.
+    \item \textbf{5. Documentación:} Elaboración de bitácora técnica y reporte final.
+\end{itemize}
+
+% Identificación de la ruta crı́tica dentro del cronograma.
+\subsection{Ruta Crítica y Cronograma}
+Dada la fecha límite del 5 de diciembre, la \textbf{ruta crítica} del proyecto se identificó en la fase de \textbf{Entrenamiento y Resolución de Problemas de Infraestructura}. Los fallos iniciales con LLaMA-3 y SigLIP representaron un riesgo significativo de retraso. La decisión de pivotar hacia TinyLlama y CLIP fue crucial para desbloquear esta ruta y permitir tiempo suficiente para la fase de evaluación y reporte. Cualquier retraso adicional en la estabilización del entrenamiento habría hecho imposible cumplir con la entrega.
+
+% Explicación de su uso como estrategia estructurada de resolución de problemas e innovación basada en principios inventivos.
+\section{Metodología TRIZ}
+
+Para abordar los bloqueos técnicos críticos encontrados durante el desarrollo, se aplicó la Teoría de Resolución de Problemas Inventivos (TRIZ). Específicamente, se identificó una \textbf{Contradicción Técnica} fundamental: la necesidad de aumentar la \textit{capacidad de razonamiento} del modelo (lo que sugería usar LLaMA-3 8B) entraba en conflicto directo con la limitación de \textit{recursos disponibles} (memoria VRAM estática de 24GB).
+
+Para resolver esta contradicción sin comprometer la viabilidad del proyecto, se aplicaron los siguientes Principios Inventivos:
+
+\begin{itemize}
+    \item \textbf{Principio 35: Cambio de Parámetros (Parameter Changes).} En lugar de intentar forzar la ejecución de un modelo masivo mediante cuantización extrema (que falló), se optó por cambiar la propiedad física del sistema: la escala. La sustitución de LLaMA-3 (8B) por TinyLlama (1.1B) permitió eliminar el conflicto de memoria, manteniendo una arquitectura funcional capaz de aprender la tarea.
+
+    \item \textbf{Principio 2: Extracción (Taking Out).} Se identificó que el encoder visual SigLIP, aunque moderno, introducía complejidad innecesaria e incompatibilidades de software ("ruido") que impedían la integración. Se aplicó este principio para "extraer" este componente problemático y reemplazarlo por CLIP, un estándar más estable y compatible con la arquitectura LLaVA, eliminando así la fuente de inestabilidad.
+
+    \item \textbf{Principio 10: Acción Preliminar (Preliminary Action).} Dado que el entorno de ejecución (clúster) carecía de conexión a internet, se anticipó el problema de gestión de dependencias. Se realizó la descarga, conversión de pesos (de \texttt{.bin} a \texttt{.safetensors}) y validación de integridad de los modelos en un entorno local \textit{antes} de la transferencia al clúster. Esta acción previa aseguró que, durante el tiempo de cómputo asignado, el sistema tuviera todos los recursos necesarios listos para usar.
+\end{itemize}
+
+% Revisión breve de soluciones previas similares.
+\section{Trabajos Relacionados}
+
+El campo de Visual Question Answering (VQA) en el dominio médico ha evolucionado desde enfoques basados en clasificación simple hasta sistemas generativos complejos.
+
+\subsection{VQA en Patología}
+El trabajo seminal de He et al. \cite{he2020pathvqa}, creadores del dataset PathVQA, estableció los primeros baselines utilizando arquitecturas modulares que combinaban redes convolucionales (VGG, ResNet) con redes recurrentes (LSTM). Si bien estos modelos demostraron la viabilidad de la tarea, su capacidad de generalización y razonamiento era limitada, tratando el problema a menudo como una clasificación sobre un vocabulario fijo de respuestas.
+
+\subsection{Modelos de Visión-Lenguaje (VLMs)}
+Recientemente, la adaptación de modelos fundacionales ha transformado el estado del arte. Arquitecturas como LLaVA (Large Language and Vision Assistant) han demostrado que proyectar características visuales de encoders robustos (como CLIP o SigLIP) al espacio de entrada de LLMs pre-entrenados (como LLaMA o Vicuna) permite un nivel de comprensión visual superior.
+
+En el contexto médico, trabajos recientes han explorado el uso de adaptadores eficientes (LoRA, QLoRA) para ajustar estos modelos masivos a dominios específicos como la radiología y la histopatología. Sin embargo, la mayoría de estos enfoques requieren recursos computacionales significativos (múltiples GPUs A100), lo que limita su reproducibilidad en entornos con recursos restringidos. Nuestra propuesta se diferencia al demostrar la eficacia de modelos compactos (TinyLlama) para esta tarea, democratizando el acceso a estas tecnologías.
+
+
+% Descripción detallada de la colección utilizada (origen, caracterı́sticas, tamaño, formato, preprocesamiento, etc.).
+\section{Base de Datos}
+
+Para el entrenamiento y evaluación del sistema se utilizó el dataset \textbf{PathVQA} \cite{he2020pathvqa}, una colección de referencia en el dominio de VQA médico. Este conjunto de datos se obtuvo a través de la librería \texttt{datasets} de Hugging Face (repositorio \texttt{flaviagiammarino/path-vqa}), la cual proporciona una versión curada y estandarizada del dataset original.
+
+\subsection{Origen y Composición}
+PathVQA se construyó a partir de tres fuentes principales de conocimiento patológico: los libros de texto "Textbook of Pathology" y "Basic Pathology", y la biblioteca digital "Pathology Education Informational Resource" (PEIR). El dataset contiene pares de preguntas y respuestas asociadas a imágenes de microscopía histopatológica.
+
+La versión utilizada en este proyecto consta de un total de \textbf{32,795 pares pregunta-respuesta} distribuidos en \textbf{5,004 imágenes}. Sin embargo, tras un proceso de limpieza de duplicados (tripletas imagen-pregunta-respuesta idénticas), el conjunto efectivo se reduce a \textbf{32,632 muestras} sobre 4,289 imágenes únicas.
+
+\subsection{Estructura y División de Datos}
+Cada instancia del dataset es una tripleta compuesta por:
+\begin{itemize}
+    \item \textbf{Imagen:} Archivo de imagen histopatológica (RGB o CMYK).
+    \item \textbf{Pregunta:} Texto en inglés formulando una interrogante clínica (e.g., \textit{"where are liver stem cells located?"}).
+    \item \textbf{Respuesta:} Texto en inglés con la respuesta correcta (e.g., \textit{"in the canals of hering"}).
+\end{itemize}
+
+El dataset incluye dos tipos principales de preguntas:
+\begin{enumerate}
+    \item \textbf{Preguntas Binarias (Yes/No):} Requieren una respuesta afirmativa o negativa.
+    \item \textbf{Preguntas Abiertas (Open-ended):} Requieren respuestas descriptivas sobre ubicación, identificación de estructuras o diagnóstico.
+\end{enumerate}
+
+La división de los datos (splits) utilizada respeta la partición oficial propuesta por los autores para garantizar la comparabilidad de resultados:
+
+\begin{table}[h]
+\centering
+\caption{Distribución de muestras en PathVQA}
+\label{tab:dataset_splits}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Split} & \textbf{Pares QA} & \textbf{Imágenes Únicas} \\ \hline
+Entrenamiento (Train) & 19,654 & 2,599 \\ \hline
+Validación (Val) & 6,259 & 832 \\ \hline
+Prueba (Test) & 6,719 & 858 \\ \hline
+\textbf{Total} & \textbf{32,632} & \textbf{4,289} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Preprocesamiento}
+Para adaptar este dataset a la arquitectura multimodal propuesta, se aplicaron las siguientes transformaciones:
+\begin{itemize}
+    \item \textbf{Imágenes:} Redimensionamiento y normalización para cumplir con la entrada esperada por el encoder CLIP-ViT-Large ($336 \times 336$ píxeles).
+    \item \textbf{Texto:} Tokenización utilizando el tokenizador de TinyLlama, añadiendo los tokens especiales de inicio y fin de secuencia requeridos por el modelo de lenguaje.
+\end{itemize}
+
+% Descripción de la arquitectura, técnicas y herramientas empleadas.
+\section{Propuesta de modelo desarrollado}
+
+La arquitectura implementada es un modelo de Visión-Lenguaje (VLM) basado en el paradigma LLaVA (Large Language and Vision Assistant), adaptado para operar bajo restricciones estrictas de hardware. El sistema integra un encoder visual robusto con un modelo de lenguaje compacto, conectados mediante un proyector multimodal entrenable.
+
+\subsection{Arquitectura del Sistema}
+El modelo consta de tres componentes principales, ensamblados mediante una estrategia de "inyección quirúrgica" para evitar la duplicidad de parámetros:
+
+\begin{enumerate}
+    \item \textbf{Encoder Visual (Ojos):} Se utilizó \textbf{CLIP-ViT-Large-Patch14-336}. Este modelo procesa imágenes de alta resolución ($336 \times 336$) y genera embeddings visuales ricos. Se seleccionó CLIP sobre SigLIP debido a su estabilidad nativa con la arquitectura LLaVA y su compatibilidad comprobada.
+    \item \textbf{Proyector Multimodal (Conector):} Un Perceptrón Multicapa (MLP) con activación GELU que proyecta los embeddings visuales al espacio latente del modelo de lenguaje. Este componente es crucial para alinear las representaciones visuales con las textuales.
+    \item \textbf{Modelo de Lenguaje (Cerebro):} Se implementó \textbf{TinyLlama-1.1B}, un LLM compacto pero potente. Su tamaño reducido (~1.1 billones de parámetros) permitió realizar un ajuste fino completo (Full Fine-Tuning) en una sola GPU de 24GB, evitando la necesidad de cuantización agresiva que degradaría el rendimiento.
+\end{enumerate}
+
+\subsection{Estrategia de Entrenamiento}
+A diferencia de enfoques que utilizan adaptadores de bajo rango (LoRA), se optó por una estrategia de \textbf{Full Fine-Tuning (FFT)}.
+\begin{itemize}
+    \item \textbf{Congelamiento Selectivo:} El encoder visual (CLIP) se mantuvo congelado (frozen) para preservar las características visuales pre-entrenadas.
+    \item \textbf{Entrenamiento Activo:} Tanto el proyector multimodal como el modelo de lenguaje (TinyLlama) se mantuvieron entrenables, permitiendo que el sistema aprenda a interpretar las características histopatológicas específicas y a generar respuestas coherentes.
+    \item \textbf{Optimizador:} Se utilizó \textbf{AdamW} con una tasa de aprendizaje de $2.0 \times 10^{-5}$ y un esquema de calentamiento (warmup ratio) para garantizar la estabilidad numérica.
+\end{itemize}
+
+\subsection{Implementación Técnica y Herramientas}
+El desarrollo se realizó utilizando \textbf{PyTorch} y la librería \textbf{Transformers} de Hugging Face. Se implementaron soluciones de ingeniería específicas para superar los desafíos del entorno:
+\begin{itemize}
+    \item \textbf{Corrección de Tokens (577 vs 576):} Se ajustó la estrategia de selección de características visuales (\texttt{vision\_feature\_select\_strategy="default"}) para eliminar el token CLS sobrante de CLIP, alineando perfectamente los tensores con la entrada esperada por LLaVA.
+    \item \textbf{Gestión de Memoria:} Se implementó \textit{Gradient Accumulation} (pasos de 4) para simular un tamaño de lote efectivo mayor sin saturar la VRAM.
+    \item \textbf{Logging Offline:} Se desarrolló un sistema de callbacks personalizado (\texttt{FileLoggerCallback}) para registrar métricas en formato JSONL, independiente de servicios en la nube como WandB, inaccesibles desde el clúster.
+\end{itemize}
+
+% Incluir métricas, visualizaciones, gráficas y tablas relevantes. Debes proponer un baseline muy sencillo para comparar los resultados.
+\section{Resultados}
+
+% Análisis crı́tico de los resultados, limitaciones del enfoque y posibles lı́neas de mejora.
+\section{Discusión}
+
+% Sı́ntesis final de hallazgos y aportaciones.
+\section{Conclusiones}
+
+% Bajo un formato académico uniforme (APA o IEEE).
+\bibliography{refs.bib}
+
+%%
+%% If your work has an appendix, this is the place to put it.
+% \appendix
+% \section{Título del Apéndice A}
+% ...
+
+\end{document}
+%%
+%% End of file
