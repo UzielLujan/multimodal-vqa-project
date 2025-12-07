@@ -24,6 +24,7 @@ echo "========================================================"
 
 # 4. Ejecutar
 echo "Iniciando entrenamiento en SINGLE GPU..."
-python -u train.py --config "$CONFIG_FILE"
+
+python -m src.training.train --config "$CONFIG_FILE"
 
 echo "Entrenamiento completado."
