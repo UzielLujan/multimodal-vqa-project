@@ -45,3 +45,20 @@ tmp/
 venv/
 .venv/
 *.egg-info/
+
+# LaTeX
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.out
+*.toc
+*.lof
+*.lot
+*.dvi
+*.pdf
+
+# Report build output
+report/out/

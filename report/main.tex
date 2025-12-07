@@ -1,0 +1,137 @@
+%% The first command in your LaTeX source must be the \documentclass command.
+%% Options: hf: enable header and footer.
+\documentclass[
+% twocolumn,
+% hf,
+]{ceurart}
+
+%% One can fix some overfulls
+%\sloppy
+
+
+%% Minted listings support 
+%% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
+\usepackage{minted}
+%% auto break lines
+\setminted{breaklines=true}
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% Rights management information.
+%% CC-BY is default license.
+\copyrightyear{2025} % Actualizado para REST-MEX 2025
+\copyrightclause{Copyright for this paper by its authors.
+  Use permitted under Creative Commons License Attribution 4.0
+  International (CC BY 4.0).}
+
+%%
+%% This command is for the conference information
+\conference{}
+
+
+%%
+%% The "title" command
+\title{Modelos Multimodales para Visual Question Answering en Imágenes Histopatológicas} 
+% \subtitle{Clasificación de Polaridad, Tipo de Destino e Identificación de Pueblos Mágicos} % Subtítulo opcional
+
+% \tnotemark[1] % Si necesitas una nota para el título
+% \tnotetext[1]{Este trabajo fue parcialmente financiado por XYZ.}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+
+% --- Equipo ---
+\author[1]{Uziel Lujan Lopez}[
+orcid=0009-0001-3160-5294, 
+email=uziel.lujan@cimat.mx, 
+]\fnmark[1]
+
+\author[1]{Diego Paniagua-Molina}[
+orcid=0009-0006-6564-2794, 
+email=diego.paniagua@cimat.mx, 
+]\fnmark[1]
+
+
+% --- Afiliaciones ---
+\address[1]{Mathematics Research Center (CIMAT—Centro de Investigación en Matemáticas), Graduate Program in Statistical Computing, Nuevo León, Mexico}
+
+
+
+%% Footnotes
+%\cortext[1]{Corresponding author.}
+\fntext[1]{Estos autores contribuyeron de igual manera.}
+
+
+%% Maximo 250 palabras, donde se describa el problema abordado, la base de datos empleada, los métodos utilizados, los resultados obtenidos y las conclusiones principales.
+\begin{abstract}
+  .
+\end{abstract}
+
+%%
+%% Entre 3 y 5.
+\begin{keywords}
+  .
+\end{keywords}
+
+\maketitle
+
+%--------------------------------------------------------------------------
+%	CUERPO DEL ARTÍCULO
+%--------------------------------------------------------------------------
+
+% Incluir al menos una pregunta de investigación y formular los objetivos del proyecto bajo la metodologı́a SMART (especı́ficos, medibles, alcanzables, relevantes y con lı́mite de tiempo).
+\section{Introducción}
+
+
+\section{Gestión y Planeación del Proyecto}
+
+% Roles y responsabilidades
+\subsection{Matriz RACI}
+
+% Diagrama de actividades
+\subsection{Método PERT}
+
+% WBS
+\subsection{Estructura de Desglose del Trabajo}
+
+% Identificación de la ruta crı́tica dentro del cronograma.
+\subsection{Ruta Cronograma}
+
+% Explicación de su uso como estrategia estructurada de resolución de problemas e innovación basada en principios inventivos.
+\section{Metodología TRIZ}
+
+% Revisión breve de soluciones previas similares.
+\section{Trabajos Relacionados}
+
+
+% Descripción detallada de la colección utilizada (origen, caracterı́sticas, tamaño, formato, preprocesamiento, etc.).
+\section{Base de Datos}
+
+% Descripción de la arquitectura, técnicas y herramientas empleadas.
+\section{Propuesta de modelo desarrollado}
+
+% Incluir métricas, visualizaciones, gráficas y tablas relevantes. Debes proponer un baseline muy sencillo para comparar los resultados.
+\section{Resultados}
+
+% Análisis crı́tico de los resultados, limitaciones del enfoque y posibles lı́neas de mejora.
+\section{Discusión} 
+
+% Sı́ntesis final de hallazgos y aportaciones.
+\section{Conclusiones} 
+
+% Bajo un formato académico uniforme (APA o IEEE).
+\bibliography{refs.bib}
+
+%%
+%% If your work has an appendix, this is the place to put it.
+% \appendix
+% \section{Título del Apéndice A}
+% ...
+
+\end{document}
+%%
+%% End of file
