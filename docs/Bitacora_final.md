@@ -427,3 +427,30 @@ El modelo 1024 tiende a cometer errores similares al 768, pero de forma más mar
 5. Los errores muestran que el modelo entiende la región anatómica general, pero no siempre la subestructura específica.
 
 Estas observaciones complementan los resultados cuantitativos de la Sección 4 y ayudan a explicar las diferencias en el desempeño global.
+
+
+## 6. Conclusión Final del Proyecto
+
+El pipeline desarrollado en este proyecto permitió construir un sistema completo, reproducible y científicamente sólido para evaluar modelos multimodales TinyLlama-CLIP en la tarea de VQA médico sobre el dataset PathVQA. Mediante herramientas de inferencia masiva, análisis cualitativo, métricas adaptadas al dominio y mecanismos de comparación entre modelos, fue posible caracterizar de manera precisa el desempeño de cada versión del modelo.
+
+Los resultados cuantitativos demostraron que **TinyLlama-CLIP 768 tokens** es la mejor versión del sistema. Este modelo, entrenado con regularización y configuraciones más refinadas, mostró:
+
+* Mayor estabilidad en preguntas binarias.
+* Mejor identificación de conceptos anatómicos clave.
+* Menor tendencia a generar texto redundante o especulativo.
+
+Por el contrario, el modelo **TinyLlama-CLIP 1024 tokens**, al ser un primer experimento sin regularización y sin monitoreo adecuado de la pérdida de evaluación, presentó:
+
+* Inferior desempeño en métricas críticas como Accuracy Yes/No y Keyword Accuracy.
+* Mayor variabilidad en la longitud y coherencia de las respuestas.
+* Propensión a "alucinaciones" clínicas, afectando su utilidad práctica.
+
+El análisis cualitativo confirmó estas conclusiones: aunque ambos modelos comprenden de manera general las regiones anatómicas mostradas, el modelo 768 produce respuestas más precisas y menos ruidosas, mientras que el 1024 genera más narrativa innecesaria.
+
+**Síntesis comparativa:**
+
+* **Mejor modelo en general:** TinyLlama-CLIP 768.
+* **Modelo menos estable:** TinyLlama-CLIP 1024.
+* **Diferencia clave:** control de longitud y regularización durante el entrenamiento.
+
+En conjunto, el sistema final ofrece un marco robusto para evaluar modelos VQA multimodales y sirve como base sólida para el reporte final y futuras extensiones del proyecto.

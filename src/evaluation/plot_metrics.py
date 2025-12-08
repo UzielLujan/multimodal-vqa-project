@@ -84,6 +84,79 @@ def plot_scatter(df, x_col, y_col, xlabel, ylabel, title, out_path):
     print(f" Guardado: {out_path}")
 
 
+def plot_summary_metrics(df: pd.DataFrame, save_path: Path):
+    """
+    Genera una gráfica unificada que compara todas las métricas entre modelos.
+    Produce barras agrupadas con etiquetas numéricas.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Métricas en orden deseado
+    metrics = [
+        ("accuracy_yesno", "Accuracy Yes/No"),
+        ("accuracy_general_flexible", "Accuracy Flexible"),
+        ("keyword_accuracy", "Keyword Accuracy"),
+        ("bleu_short", "BLEU-short"),
+        ("bleu", "BLEU clásico"),
+    ]
+
+    model_names = df["model"].tolist()
+    num_models = len(model_names)
+
+    # Obtener valores en el mismo orden que las métricas anteriores
+    metric_values = []
+    for metric_key, _ in metrics:
+        metric_values.append(df[metric_key].tolist())
+
+    metric_values = np.array(metric_values)  # Shape: (num_metrics, num_models)
+
+    x = np.arange(len(metrics))  # posiciones de las categorías
+    width = 0.35 / max(1, num_models / 2)  # ajusta ancho según número de modelos
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Crear una barra por modelo
+    for i, model in enumerate(model_names):
+        bars = ax.bar(
+            x + i * width,
+            metric_values[:, i],
+            width,
+            label=model,
+            alpha=0.85
+        )
+
+        # Etiquetas numéricas encima
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(
+                f"{height:.3f}",
+                xy=(bar.get_x() + bar.get_width()/2, height),
+                xytext=(0, 3),
+                textcoords="offset points",
+                ha="center",
+                fontsize=9
+            )
+
+    # Etiquetas de eje
+    ax.set_xticks(x + width * (num_models - 1) / 2)
+    ax.set_xticklabels([label for _, label in metrics], rotation=30, ha="right")
+
+    ax.set_ylabel("Valor de la métrica")
+    ax.set_title("Comparación de métricas entre modelos TinyLlama-CLIP")
+    ax.legend()
+
+    ax.grid(axis="y", linestyle="--", alpha=0.4)
+
+    fig.tight_layout()
+
+    save_path = Path(save_path)
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(save_path, dpi=300)
+    plt.close()
+
+
+
 # ---------------------------------------------------------
 #  MAIN
 # ---------------------------------------------------------
@@ -175,6 +248,10 @@ def main():
         title="Accuracy Flexible vs Keyword Accuracy",
         out_path=plots_dir / "scatter_flexible_vs_keyword.png"
     )
+
+    summary_fig = plots_dir / "summary_metrics_comparison.png"
+    plot_summary_metrics(df, summary_fig)
+    print(f" Guardado: {summary_fig}")
 
     print(" Todas las gráficas generadas correctamente.")
 
