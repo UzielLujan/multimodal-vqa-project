@@ -1,0 +1,10 @@
+{
+    "model": "final_model",
+    "split": "validation",
+    "samples": 6259,
+    "accuracy_yesno": 0.86176,
+    "accuracy_general_flexible": 0.3289725590299936,
+    "keyword_accuracy": 0.5775683016456303,
+    "bleu_short": 0.03842796494445231,
+    "bleu": 0.022047226034829136
+}

@@ -42,7 +42,7 @@ def plot_training_progress(log_file, output_img):
     plt.figure(figsize=(10, 6))
     
     # Curva de Entrenamiento (Suavizada visualmente si hay muchos puntos)
-    plt.plot(steps, train_loss, label='Training Loss', color='#3b82f6', alpha=0.6, linewidth=1)
+    plt.plot(steps, train_loss, label='Training Loss', color="#175fd3", alpha=0.6, linewidth=2)
     
     # Curva de Validación (Puntos grandes rojos)
     if val_loss:
@@ -55,24 +55,30 @@ def plot_training_progress(log_file, output_img):
                      ha='center',
                      color='#ef4444',
                      fontweight='bold')
+        # Marcar los finales de época con etiquetas mejoradas
+        ymin, ymax = plt.ylim()
+        y_text = ymin + (ymax - ymin) * 0.2  # 20% arriba del mínimo
+        for i, step in enumerate(val_steps):
+            plt.axvline(x=step, color='#888888', linestyle='--', alpha=0.5, linewidth=1)
+            plt.text(step, y_text, f"Epoch {i+1}", color='#888888', fontsize=10, ha='right', va='bottom', rotation=0, alpha=0.9, fontweight='bold', backgroundcolor='white')
     else:
         plt.text(0.5, 0.5, "Esperando fin de epoch para Validación...", 
                  transform=plt.gca().transAxes, ha='center', alpha=0.5)
 
-    plt.title(f"Curvas de Aprendizaje VQA\nActualizado: {datetime.now().strftime('%H:%M:%S')}")
+    plt.title(f"Curvas de Aprendizaje VQA \n Modelo TinyLlama-CLIP-768", fontsize=16)
     plt.xlabel("Pasos (Steps)")
     plt.ylabel("Pérdida (Loss)")
     plt.legend()
     plt.grid(True, which='both', linestyle='--', alpha=0.5)
     
     # Guardar
-    plt.savefig(output_img)
-    print(f"✅ Gráfica guardada en: {output_img}")
+    plt.savefig(output_img, dpi=300, bbox_inches='tight')
+    print(f" Gráfica guardada en: {output_img}")
     plt.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--logs", type=str, default="results/tinyllama-clip-768/training_logs.jsonl", help="Ruta al jsonl")
+    parser.add_argument("--logs", type=str, default="results/tinyllama-clip-768/training_logs_clean.jsonl", help="Ruta al jsonl")
     parser.add_argument("--out", type=str, default="results/tinyllama-clip-768/training_plot.png", help="Nombre de la imagen de salida")
     args = parser.parse_args()
     

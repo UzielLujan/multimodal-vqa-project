@@ -1,0 +1,10 @@
+{
+    "model": "tinyllama-clip-1024",
+    "split": "validation",
+    "samples": 6259,
+    "accuracy_yesno": 0.82272,
+    "accuracy_general_flexible": 0.3257817485641353,
+    "keyword_accuracy": 0.5692602652180859,
+    "bleu_short": 0.03831270573431534,
+    "bleu": 0.02432794685472158
+}

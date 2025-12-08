@@ -4,7 +4,7 @@ paths:
   results_dir: "results"
 
 inference:
-  split: "validation"
+  split: "validation" # "validation" o "test"
   index: -1
   max_new_tokens: 15 # número máximo de tokens generados en la respuesta
   trim_output: true

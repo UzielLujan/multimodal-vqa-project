@@ -1,0 +1,3 @@
+model,split,samples,accuracy_yesno,accuracy_general_flexible,keyword_accuracy,bleu_short,bleu,csv_path
+tinyllama-clip-768,validation,6259,0.86176,0.32801531589023614,0.5775683016456303,0.03842796494445231,0.022047226034829136,C:\Users\uzgre\Codes\Python\Projects\multimodal-vqa-project\results\predictions\predictions_tinyllama-clip-768_validation.csv
+tinyllama-clip-1024,validation,6259,0.82272,0.31461391193363114,0.5692602652180859,0.03831270573431534,0.02432794685472158,C:\Users\uzgre\Codes\Python\Projects\multimodal-vqa-project\results\predictions\predictions_tinyllama-clip-1024_validation.csv

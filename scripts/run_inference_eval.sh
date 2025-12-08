@@ -13,15 +13,15 @@ set -e
 
 mkdir -p logs
 
-CONFIG_FILE=${1:-"configs/train_config.yaml"}
+CONFIG_FILE=${1:-"configs/inference_config.yaml"}
 
 echo "========================================================"
 echo "Job ID: $SLURM_JOB_ID | Inferencia VQA"
 echo "========================================================"
 
-python -u src/evaluation/inference_eval.py --config "$CONFIG_FILE"
+#python -u src/evaluation/inference_eval.py --config "$CONFIG_FILE"
 
-# python -m src.evaluation.inference_eval --config configs/inference_config.yaml
+python -m src.evaluation.inference_eval --config "$CONFIG_FILE"
 
 
 

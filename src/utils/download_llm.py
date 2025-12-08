@@ -15,8 +15,8 @@ LLM_ID = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 LLM_DIR = CHECKPOINTS_DIR / "TinyLlama-1.1B-Chat"
 
 def download_llm():
-    print(f"📍 Raíz del proyecto detectada en: {PROJECT_ROOT}")
-    print(f"🚀 Iniciando descarga de TinyLlama en: {LLM_DIR}")
+    print(f" Raíz del proyecto detectada en: {PROJECT_ROOT}")
+    print(f" Iniciando descarga de TinyLlama en: {LLM_DIR}")
     
     # Asegurar que el directorio existe
     LLM_DIR.mkdir(parents=True, exist_ok=True)

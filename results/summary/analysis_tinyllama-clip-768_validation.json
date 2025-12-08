@@ -1,0 +1,134 @@
+{
+    "metrics": {
+        "samples": 6259,
+        "accuracy_yesno": 0.86176,
+        "accuracy_general_flexible": 0.32801531589023614,
+        "keyword_accuracy": 0.5775683016456303,
+        "bleu_short": 0.03842796494445231,
+        "bleu": 0.022047226034829136
+    },
+    "n_samples": 6259,
+    "top_k": 20,
+    "top_k_errors": [
+        {
+            "id": 0,
+            "question": "what have lost their nuclei?",
+            "reference": "neutrophils",
+            "prediction": "their nuclei as seen in this section showing sectioned surface of the"
+        },
+        {
+            "id": 1,
+            "question": "whose nuclei have been lost?",
+            "reference": "neutrophils",
+            "prediction": "the tumour cells are small and round, with round to oval nuc"
+        },
+        {
+            "id": 2,
+            "question": "are two small pulmonary arterioles packed with laminated swirls of fetal squamous cells?",
+            "reference": "yes",
+            "prediction": "no evidence of previous infection (no pink serous exudate"
+        },
+        {
+            "id": 3,
+            "question": "what is acute viral hepatitis characterized by?",
+            "reference": "predominantly lymphocytic infiltrate",
+            "prediction": "elongated bile plugs in the canaliculi of hepat"
+        },
+        {
+            "id": 4,
+            "question": "what do the cells have?",
+            "reference": "wavy nuclei",
+            "prediction": "elongated bile plugs in the canaliculi of hepat"
+        },
+        {
+            "id": 6,
+            "question": "do individual myocardial fibres have wavy nuclei?",
+            "reference": "no",
+            "prediction": "yes, some myocardial fibres have wavy nuclei,"
+        },
+        {
+            "id": 8,
+            "question": "what does this image show?",
+            "reference": "peritoneal carcinomatosis",
+            "prediction": "normal lung cap and lobes simple bronchus atrophy with chronic"
+        },
+        {
+            "id": 11,
+            "question": "what does this image show?",
+            "reference": "hemorrhage secondary to ruptured aneurysm",
+            "prediction": "normal liver with yellow color\nnormal liver with yellow color hepat"
+        },
+        {
+            "id": 14,
+            "question": "how is acute viral hepatitis characterized?",
+            "reference": "by predominantly lymphocytic infiltrate",
+            "prediction": "by a core of neutrophils with acid-fast bacteria in"
+        },
+        {
+            "id": 15,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "respiratory\nthorax\ncardiovascular\nth"
+        },
+        {
+            "id": 18,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "respiratory\nthorax\ncardiovascular\nth"
+        },
+        {
+            "id": 19,
+            "question": "why does this image show bowel in situ with diffuse thickening of peritoneal surfaces?",
+            "reference": "due to metastatic carcinoma breast primary i think",
+            "prediction": "due to diverticula urinary which are not passed on blad"
+        },
+        {
+            "id": 20,
+            "question": "what does this image show?",
+            "reference": "bowel in situ with diffuse thickening of peritoneal surfaces due to metastatic carcinoma breast primary i think",
+            "prediction": "close-up of lesion sliced open like a book typical for"
+        },
+        {
+            "id": 21,
+            "question": "how does this image show bowel in situ?",
+            "reference": "with diffuse thickening of peritoneal surfaces due to metastatic carcinoma breast primary i think",
+            "prediction": "with necrotic debris and infarcts on the surface"
+        },
+        {
+            "id": 23,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "lymph node and adenoma subdivided into two parts-"
+        },
+        {
+            "id": 25,
+            "question": "is acute viral hepatitis characterize by a predominantly lymphocytic infiltrate?",
+            "reference": "yes",
+            "prediction": "no recognizable thyroid gland present in this section after sectioning with"
+        },
+        {
+            "id": 27,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "lymph node and adenoma subdivided into two parts-"
+        },
+        {
+            "id": 28,
+            "question": "when does this image show a photo taken?",
+            "reference": "during life large lesion",
+            "prediction": "after surgery to close the uterus to the vagina and"
+        },
+        {
+            "id": 29,
+            "question": "what does this image show?",
+            "reference": "a photo taken during life large lesion",
+            "prediction": "view of head with large tumor mass in hilum see other slide"
+        },
+        {
+            "id": 32,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "anencephaly and bilateral cleft palate spotted fe"
+        }
+    ]
+}

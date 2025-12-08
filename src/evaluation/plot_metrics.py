@@ -2,17 +2,17 @@
 
 """
 plot_metrics.py
---------------------
 
-Genera gráficas a partir de:
-
+Genera gráficas avanzadas a partir de:
     results/summary/summary_models.csv
 
-Produce:
-
-    results/plots/accuracy_by_model.png
-    results/plots/bleu_by_model.png
-    results/plots/accuracy_vs_bleu.png
+Incluye:
+    ✓ Accuracy flexible por modelo
+    ✓ Keyword accuracy por modelo
+    ✓ Accuracy yes/no por modelo
+    ✓ BLEU-short por modelo
+    ✓ BLEU clásico por modelo
+    ✓ Scatter plots comparativos
 
 Uso:
     python -m src.evaluation.plot_metrics --config configs/inference_config.yaml
@@ -23,23 +23,25 @@ from pathlib import Path
 
 import yaml
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from src.utils.paths import get_path, check_path
 
 
 # ---------------------------------------------------------
-#  Loader de configuración YAML
+#  Leer config YAML
 # ---------------------------------------------------------
-def load_config(config_path: str) -> dict:
+def load_config(config_path: str):
     config_path = get_path(config_path)
-    print(f"📖 Cargando configuración desde: {config_path}")
+    print(f" Cargando configuración desde: {config_path}")
 
     with open(config_path, "r") as f:
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ El YAML debe contener paths.results_dir")
+        raise KeyError("❌ Falta paths.results_dir en el YAML")
 
     return cfg
 
@@ -47,72 +49,53 @@ def load_config(config_path: str) -> dict:
 # ---------------------------------------------------------
 #  Funciones de graficación
 # ---------------------------------------------------------
-def plot_accuracy_by_model(df: pd.DataFrame, out_path: Path):
-    plt.figure(figsize=(8, 4))
-    plt.bar(df["model"], df["accuracy"], color="slateblue")
+def plot_bar(df, column, ylabel, title, out_path):
+    plt.figure(figsize=(10, 4))
+    plt.bar(df["model"], df[column], color="slateblue")
     plt.xticks(rotation=45, ha="right")
-    plt.ylabel("Accuracy")
-    plt.title("Accuracy por modelo (Yes/No)")
-
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.tight_layout()
-    out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=200)
     plt.close()
-
-    print(f"📊 Accuracy plot guardado en: {out_path}")
-
-
-def plot_bleu_by_model(df: pd.DataFrame, out_path: Path):
-    plt.figure(figsize=(8, 4))
-    plt.bar(df["model"], df["bleu"], color="darkgreen")
-    plt.xticks(rotation=45, ha="right")
-    plt.ylabel("BLEU")
-    plt.title("BLEU por modelo")
-
-    plt.tight_layout()
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(out_path, dpi=200)
-    plt.close()
-
-    print(f"📊 BLEU plot guardado en: {out_path}")
+    print(f" Guardado: {out_path}")
 
 
-def plot_accuracy_vs_bleu(df: pd.DataFrame, out_path: Path):
+def plot_scatter(df, x_col, y_col, xlabel, ylabel, title, out_path):
     plt.figure(figsize=(6, 6))
+    plt.scatter(df[x_col], df[y_col], s=90, color="darkgreen")
 
-    plt.scatter(df["accuracy"], df["bleu"], s=80, color="firebrick")
-
+    # Etiquetas de cada punto
     for _, row in df.iterrows():
-        plt.text(row["accuracy"] + 0.002, row["bleu"] + 0.2, row["model"], fontsize=9)
+        plt.text(
+            row[x_col] + 0.002,
+            row[y_col] + 0.002,
+            row["model"],
+            fontsize=9
+        )
 
-    plt.xlabel("Accuracy")
-    plt.ylabel("BLEU")
-    plt.title("Comparación entre modelos: Accuracy vs BLEU")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
     plt.grid(True, alpha=0.3)
-
     plt.tight_layout()
-    out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=200)
     plt.close()
-
-    print(f"📊 Scatter Accuracy vs BLEU guardado en: {out_path}")
+    print(f" Guardado: {out_path}")
 
 
 # ---------------------------------------------------------
 #  MAIN
 # ---------------------------------------------------------
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Generar gráficas a partir de summary_models.csv")
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/inference_config.yaml",
-        help="Ruta al archivo YAML de configuración",
-    )
+    parser = argparse.ArgumentParser(description="Graficación de métricas VQA")
+    parser.add_argument("--config", type=str, required=True)
     args = parser.parse_args()
 
-    # 1. Cargar config
-    cfg = load_config(args.config)
+    # 1. Load config
+    cfg = load_config(args.config) 
 
     results_dir = get_path(cfg["paths"]["results_dir"])
     summary_dir = results_dir / "summary"
@@ -124,19 +107,76 @@ def main():
     summary_csv = summary_dir / "summary_models.csv"
     check_path(summary_csv, is_file=True)
 
-    print(f"📂 Leyendo tabla resumen: {summary_csv}")
+    print(f" Leyendo resumen: {summary_csv}")
     df = pd.read_csv(summary_csv)
 
-    # 2. Generar gráficas
-    acc_path = plots_dir / "accuracy_by_model.png"
-    bleu_path = plots_dir / "bleu_by_model.png"
-    scatter_path = plots_dir / "accuracy_vs_bleu.png"
+    # -----------------------------------------------------
+    # 2. Gráficas de barras individuales por métrica
+    # -----------------------------------------------------
+    plot_bar(
+        df=df,
+        column="accuracy_general_flexible",
+        ylabel="Accuracy Flexible",
+        title="Accuracy Flexible por Modelo (PathVQA)",
+        out_path=plots_dir / "accuracy_flexible.png"
+    )
 
-    plot_accuracy_by_model(df, acc_path)
-    plot_bleu_by_model(df, bleu_path)
-    plot_accuracy_vs_bleu(df, scatter_path)
+    plot_bar(
+        df=df,
+        column="keyword_accuracy",
+        ylabel="Keyword Accuracy",
+        title="Keyword Accuracy por Modelo",
+        out_path=plots_dir / "keyword_accuracy.png"
+    )
 
-    print("🎉 Todas las gráficas han sido generadas correctamente.")
+    plot_bar(
+        df=df,
+        column="accuracy_yesno",
+        ylabel="Accuracy Yes/No",
+        title="Accuracy Yes/No por Modelo",
+        out_path=plots_dir / "accuracy_yesno.png"
+    )
+
+    plot_bar(
+        df=df,
+        column="bleu_short",
+        ylabel="BLEU-short (5 palabras)",
+        title="BLEU-short por Modelo",
+        out_path=plots_dir / "bleu_short.png"
+    )
+
+    plot_bar(
+        df=df,
+        column="bleu",
+        ylabel="BLEU",
+        title="BLEU clásico por Modelo",
+        out_path=plots_dir / "bleu.png"
+    )
+
+    # -----------------------------------------------------
+    # 3. Scatter plots comparativos
+    # -----------------------------------------------------
+    plot_scatter(
+        df=df,
+        x_col="accuracy_general_flexible",
+        y_col="bleu_short",
+        xlabel="Accuracy Flexible",
+        ylabel="BLEU-short",
+        title="Accuracy Flexible vs BLEU-short",
+        out_path=plots_dir / "scatter_flexible_vs_bleu_short.png"
+    )
+
+    plot_scatter(
+        df=df,
+        x_col="accuracy_general_flexible",
+        y_col="keyword_accuracy",
+        xlabel="Accuracy Flexible",
+        ylabel="Keyword Accuracy",
+        title="Accuracy Flexible vs Keyword Accuracy",
+        out_path=plots_dir / "scatter_flexible_vs_keyword.png"
+    )
+
+    print(" Todas las gráficas generadas correctamente.")
 
 
 if __name__ == "__main__":

@@ -2,67 +2,65 @@
 
 """
 evaluation_batch.py
---------------------
 
-Este módulo busca automáticamente todos los archivos:
+Evalúa múltiples modelos automáticamente leyendo todos los archivos:
     results/predictions/predictions_*.csv
 
-Calcula métricas globales para cada uno usando evaluation_tools.py
-y genera una tabla resumen en:
+Calcula métricas avanzadas:
+    - accuracy_yesno
+    - accuracy_general_flexible
+    - keyword_accuracy
+    - bleu_short
+    - bleu
 
+Produce:
     results/summary/summary_models.csv
-
-Además genera un JSON:
-
     results/summary/summary_models.json
-
-Uso:
-    python -m src.evaluation.evaluation_batch --config configs/inference_config.yaml
 """
 
 import argparse
 import json
 from pathlib import Path
-
-import yaml
 import pandas as pd
+import yaml
 
 from src.utils.paths import get_path, check_path
 from src.evaluation.evaluation_tools import (
-    compute_global_metrics,
     load_predictions,
+    compute_all_metrics,
 )
 
 
 # ---------------------------------------------------------
-#  Cargar config YAML
+#  Cargar configuración YAML
 # ---------------------------------------------------------
 def load_config(config_path: str) -> dict:
     config_path = get_path(config_path)
-    print(f"📖 Cargando configuración desde: {config_path}")
+    print(f" Cargando configuración desde: {config_path}")
 
     with open(config_path, "r") as f:
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ El archivo YAML debe contener paths.results_dir")
+        raise KeyError("❌ El archivo YAML debe incluir paths.results_dir")
 
     return cfg
 
 
 # ---------------------------------------------------------
-#  Extraer nombre del modelo y split desde el nombre del CSV
-#  Ejemplo:
-#   predictions_tinyllama-clip-768_test.csv
-#   → model_name = tinyllama-clip-768
-#   → split = test
+#  Extraer modelo y split desde nombre del archivo
 # ---------------------------------------------------------
 def parse_filename(csv_path: Path):
-    stem = csv_path.stem  # predictions_tinyllama-clip-768_test
+    """
+    predictions_tinyllama-clip-768_test.csv
+        → model_name = tinyllama-clip-768
+        → split = test
+    """
+    stem = csv_path.stem  # predictions_model_split
     parts = stem.split("_", maxsplit=2)
 
     if len(parts) < 3:
-        raise ValueError(f"No se puede interpretar el nombre del archivo: {stem}")
+        raise ValueError(f"No se puede interpretar nombre de archivo: {stem}")
 
     _, model_name, split = parts
     return model_name, split
@@ -73,89 +71,88 @@ def parse_filename(csv_path: Path):
 # ---------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="Comparación automática de múltiples modelos VQA")
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="configs/inference_config.yaml",
-        help="Ruta al archivo YAML de configuración",
-    )
+    parser.add_argument("--config", type=str, required=True)
     args = parser.parse_args()
 
     # 1. Cargar configuración
     cfg = load_config(args.config)
-
     results_dir = get_path(cfg["paths"]["results_dir"])
+
     predictions_dir = results_dir / "predictions"
     summary_dir = results_dir / "summary"
 
-    check_path(results_dir, is_dir=True)
     check_path(predictions_dir, is_dir=True)
     summary_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Buscar predicciones existentes
+    # 2. Buscar archivos CSV de predicciones
     csv_files = sorted(predictions_dir.glob("predictions_*.csv"))
 
     if not csv_files:
-        print("❌ No se encontraron archivos en results/predictions/predictions_*.csv")
+        print("❌ No se encontraron predicciones en results/predictions/*.csv")
         return
 
     print("============================================================")
-    print(f"🔎 Encontrados {len(csv_files)} archivos de predicciones:")
+    print(" Encontrados archivos de predicciones:")
     for f in csv_files:
         print(f"   • {f.name}")
     print("============================================================")
 
-    # 3. Procesar cada archivo y calcular métricas
+    # 3. Procesar CSV uno por uno
     summary_rows = []
 
     for csv_path in csv_files:
-        print(f"\n📂 Procesando: {csv_path.name}")
+        print(f"\n Procesando archivo: {csv_path.name}")
 
-        # Extraer modelo y split desde el nombre del archivo
+        # Nombres desde el archivo
         model_name, split = parse_filename(csv_path)
 
         # Cargar predicciones
         df = load_predictions(csv_path)
 
-        # Calcular métricas globales
-        metrics = compute_global_metrics(df)
+        # Calcular TODAS las métricas nuevas
+        metrics = compute_all_metrics(df)
 
-        print(f"   ✔ Samples : {metrics['samples']}")
-        print(f"   ✔ Accuracy: {metrics['accuracy']:.4f}")
-        print(f"   ✔ BLEU    : {metrics['bleu']:.4f}")
+        print(f"   ✔ Samples                  : {metrics['samples']}")
+        print(f"   ✔ Accuracy Yes/No          : {metrics['accuracy_yesno']:.4f}")
+        print(f"   ✔ Accuracy Flexible        : {metrics['accuracy_general_flexible']:.4f}")
+        print(f"   ✔ Keyword Accuracy         : {metrics['keyword_accuracy']:.4f}")
+        print(f"   ✔ BLEU-short               : {metrics['bleu_short']:.4f}")
+        print(f"   ✔ BLEU                     : {metrics['bleu']:.4f}")
 
+        # Registrar fila del resumen
         summary_rows.append({
             "model": model_name,
             "split": split,
             "samples": metrics["samples"],
-            "accuracy": metrics["accuracy"],
+            "accuracy_yesno": metrics["accuracy_yesno"],
+            "accuracy_general_flexible": metrics["accuracy_general_flexible"],
+            "keyword_accuracy": metrics["keyword_accuracy"],
+            "bleu_short": metrics["bleu_short"],
             "bleu": metrics["bleu"],
             "csv_path": str(csv_path),
         })
 
-    # 4. Crear DataFrame resumen
+    # 4. Crear tabla resumen
     summary_df = pd.DataFrame(summary_rows)
 
-    # Orden sugerido: split, accuracy desc, BLEU desc
-    summary_df = summary_df.sort_values(by=["split", "accuracy", "bleu"], ascending=[True, False, False])
+    # Orden: primero por split, luego por accuracy flexible, luego keyword acc.
+    summary_df = summary_df.sort_values(
+        by=["split", "accuracy_general_flexible", "keyword_accuracy"],
+        ascending=[True, False, False]
+    )
 
     # 5. Guardar CSV
     summary_csv = summary_dir / "summary_models.csv"
     summary_df.to_csv(summary_csv, index=False)
+    print(f"\n Tabla resumen guardada en: {summary_csv}")
 
-    print("\n============================================================")
-    print("📊 TABLA RESUMEN DE MODELOS")
-    print(summary_df)
-    print("============================================================")
-    print(f"💾 Archivo guardado en: {summary_csv}")
-
-    # 6. Guardar JSON equivalente
+    # 6. Guardar JSON
     summary_json = summary_dir / "summary_models.json"
     with open(summary_json, "w") as f:
         json.dump(summary_rows, f, indent=4)
 
-    print(f"💾 JSON guardado en: {summary_json}")
-    print("🎉 Comparación de modelos completada.")
+    print(f" Resumen JSON guardado en: {summary_json}")
+    print(" Comparación entre modelos completada.")
 
 
 if __name__ == "__main__":

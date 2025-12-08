@@ -1,0 +1,134 @@
+{
+    "metrics": {
+        "samples": 6259,
+        "accuracy_yesno": 0.82272,
+        "accuracy_general_flexible": 0.31461391193363114,
+        "keyword_accuracy": 0.5692602652180859,
+        "bleu_short": 0.03831270573431534,
+        "bleu": 0.02432794685472158
+    },
+    "n_samples": 6259,
+    "top_k": 20,
+    "top_k_errors": [
+        {
+            "id": 0,
+            "question": "what have lost their nuclei?",
+            "reference": "neutrophils",
+            "prediction": "the cytoplasm of the myocardial fibres, especially"
+        },
+        {
+            "id": 1,
+            "question": "whose nuclei have been lost?",
+            "reference": "neutrophils",
+            "prediction": "the cytoplasm of the myocardial fibres with?"
+        },
+        {
+            "id": 2,
+            "question": "are two small pulmonary arterioles packed with laminated swirls of fetal squamous cells?",
+            "reference": "yes",
+            "prediction": "no cells are present in the alveolar spaces between the capillaries"
+        },
+        {
+            "id": 3,
+            "question": "what is acute viral hepatitis characterized by?",
+            "reference": "predominantly lymphocytic infiltrate",
+            "prediction": "the presence of inflammatory cells in the parenchyma and"
+        },
+        {
+            "id": 4,
+            "question": "what do the cells have?",
+            "reference": "wavy nuclei",
+            "prediction": "elongated nuclei with open chromatin and abundant nucleoli ("
+        },
+        {
+            "id": 8,
+            "question": "what does this image show?",
+            "reference": "peritoneal carcinomatosis",
+            "prediction": "opened abdominal cavity with massive tumor in omentum"
+        },
+        {
+            "id": 10,
+            "question": "where is this area in the body?",
+            "reference": "abdomen",
+            "prediction": "pel"
+        },
+        {
+            "id": 11,
+            "question": "what does this image show?",
+            "reference": "hemorrhage secondary to ruptured aneurysm",
+            "prediction": "stomach primary sclerosing cholangitis with acute"
+        },
+        {
+            "id": 14,
+            "question": "how is acute viral hepatitis characterized?",
+            "reference": "by predominantly lymphocytic infiltrate",
+            "prediction": "by a single nodularity with surrounding cytologic atypia"
+        },
+        {
+            "id": 19,
+            "question": "why does this image show bowel in situ with diffuse thickening of peritoneal surfaces?",
+            "reference": "due to metastatic carcinoma breast primary i think",
+            "prediction": "due to chronic ulcerative colitis|assistant|>"
+        },
+        {
+            "id": 20,
+            "question": "what does this image show?",
+            "reference": "bowel in situ with diffuse thickening of peritoneal surfaces due to metastatic carcinoma breast primary i think",
+            "prediction": "close-up view of large median lobe with coarse, fles"
+        },
+        {
+            "id": 21,
+            "question": "how does this image show bowel in situ?",
+            "reference": "with diffuse thickening of peritoneal surfaces due to metastatic carcinoma breast primary i think",
+            "prediction": "with a large ulcerated mucosa and a small, ulcer"
+        },
+        {
+            "id": 24,
+            "question": "is abdomen present?",
+            "reference": "yes",
+            "prediction": "no abdomen present with glandular tissue hyperplasia in"
+        },
+        {
+            "id": 28,
+            "question": "when does this image show a photo taken?",
+            "reference": "during life large lesion",
+            "prediction": "after 20 years of age with cerebral hemorrh"
+        },
+        {
+            "id": 29,
+            "question": "what does this image show?",
+            "reference": "a photo taken during life large lesion",
+            "prediction": "close-up view of two sets of twins separated by perforated"
+        },
+        {
+            "id": 32,
+            "question": "what is present?",
+            "reference": "abdomen",
+            "prediction": "siamese twins with bilateral cleft palate present?"
+        },
+        {
+            "id": 34,
+            "question": "what is present?",
+            "reference": "omphalocele",
+            "prediction": "siamese twins with bilateral cleft palate present?"
+        },
+        {
+            "id": 36,
+            "question": "is the entire thickness of the epithelium characterize by a predominantly lymphocytic infiltrate?",
+            "reference": "no",
+            "prediction": "yes, with the lymphocytes infiltrating the gl"
+        },
+        {
+            "id": 39,
+            "question": "what taken during life large lesion?",
+            "reference": "a photo",
+            "prediction": "several small lesions in this case of disseminated int"
+        },
+        {
+            "id": 40,
+            "question": "what is a photo taken?",
+            "reference": "during life large lesion",
+            "prediction": "anencephaly and bilateral cleft palate with cleft"
+        }
+    ]
+}
