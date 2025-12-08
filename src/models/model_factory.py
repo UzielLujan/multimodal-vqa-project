@@ -21,7 +21,7 @@ def build_model_and_processor(cfg):
     """
     llm_path = str(get_path(cfg['paths']['llm_model_path']))
     vision_path = str(get_path(cfg['paths']['vision_tower_path']))
-    
+
     # 1. Hardware Setup
     if torch.cuda.is_available():
         device = "cuda"
@@ -31,7 +31,7 @@ def build_model_and_processor(cfg):
         device = "cpu"
         torch_dtype = torch.float32
         print(" [Factory] Dispositivo: CPU (Forzando Float32)")
-        
+
     print(f" [Factory] Rutas:\n   - LLM: {llm_path}\n   - Vision: {vision_path}")
 
     # 2. Tokenizer
@@ -45,7 +45,7 @@ def build_model_and_processor(cfg):
     print(" [Factory] Fusionando configuraciones...")
     text_config = AutoConfig.from_pretrained(llm_path)
     clip_config = AutoConfig.from_pretrained(vision_path)
-    
+
     # Extraer config visual si está anidada
     vision_config = getattr(clip_config, 'vision_config', clip_config)
 
@@ -55,16 +55,16 @@ def build_model_and_processor(cfg):
         ignore_index=-100,
         image_token_index=image_token_index,
         projector_hidden_act="gelu",
-        
+
         # EL FIX MATEMÁTICO (577 -> 576)
         # "default" en LLaVA 1.5 significa "patch", lo que elimina el token CLS.
         # "full" incluye el CLS y rompe la matriz.
-        vision_feature_select_strategy="default", 
-        
+        vision_feature_select_strategy="default",
+
         vision_feature_layer=-2,
         pad_token_id=tokenizer.pad_token_id,
         hidden_size=text_config.hidden_size,
-        vocab_size=text_config.vocab_size 
+        vocab_size=text_config.vocab_size
     )
 
     # 4. Processor
@@ -76,17 +76,17 @@ def build_model_and_processor(cfg):
     # 5. Instanciar Esqueleto
     print(" [Factory] Creando esqueleto LLaVA...")
     model = LlavaForConditionalGeneration(llava_config)
-    
-    # 6. CIRUGÍA DE PESOS (Basada en tu script original) 
+
+    # 6. CIRUGÍA DE PESOS (Basada en tu script original)
     print(" [Factory] Cargando TinyLlama (Donante)...")
     llm_donor = AutoModelForCausalLM.from_pretrained(llm_path, dtype=torch_dtype)
-    
+
     # Redimensionamos el donante ANTES de inyectarlo (como en tu script original)
     # Esto asegura que la matriz de embeddings tenga el tamaño correcto (32001)
     llm_donor.resize_token_embeddings(len(tokenizer))
-    
+
     print(" [Factory] Realizando trasplante de órganos...")
-    
+
     # LÓGICA ORIGINAL RECUPERADA (Soluciona los parámetros duplicados)
     if hasattr(model, "model") and hasattr(model.model, "language_model"):
         print("   -> Inyección Profunda (model.model.language_model)")
@@ -102,16 +102,16 @@ def build_model_and_processor(cfg):
 
     print(" [Factory] Cargando CLIP Vision Tower...")
     vision_tower = CLIPVisionModel.from_pretrained(vision_path, dtype=torch_dtype)
-    
+
     # Inyección de Vision Tower
     if hasattr(model, "model") and hasattr(model.model, "vision_tower"):
         model.model.vision_tower = vision_tower
     else:
         model.vision_tower = vision_tower
-    
+
     # 7. Configuración Entrenamiento (FFT)
     print(" [Factory] Configurando capas entrenables...")
-    
+
     # Búsqueda agnóstica de módulos (Tu lógica original era muy sólida aquí)
     vision_module = model.model.vision_tower if hasattr(model, "model") else model.vision_tower
     llm_module = model.model.language_model if hasattr(model, "model") else model.language_model
@@ -120,11 +120,11 @@ def build_model_and_processor(cfg):
     # Congelar Vision
     for param in vision_module.parameters():
         param.requires_grad = False
-    
+
     # Descongelar LLM
     for param in llm_module.parameters():
         param.requires_grad = True
-        
+
     # Descongelar Proyector
     projector_module.to(dtype=torch_dtype)
     for p in projector_module.parameters():
@@ -141,20 +141,20 @@ def build_model_and_processor(cfg):
     # 8. Mover y Castear
     print(f" [Factory] Moviendo modelo a {device}...")
     model.to(device)
-    
+
     # Casting final para evitar error Float vs BFloat16
     model.to(dtype=torch_dtype)
-    
+
     # Stats Finales
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     all_params = sum(p.numel() for p in model.parameters())
-    
+
     print(f" [Factory] Params Totales: {all_params:,}")
     if all_params > 1_600_000_000:
-        print("⚠️ ADVERTENCIA: Aún hay duplicados (¿Seguro que se borró el fantasma?).")
+        print("ADVERTENCIA: Aún hay duplicados (¿Seguro que se borró el fantasma?).")
     else:
-        print(" ✅ TAMAÑO CORRECTO: ~1.5B (Fantasma eliminado).")
-        
+        print("TAMAÑO CORRECTO: ~1.5B (Fantasma eliminado).")
+
     print(f" [Factory] Entrenables:   {trainable_params:,}")
-    
+
     return model, processor

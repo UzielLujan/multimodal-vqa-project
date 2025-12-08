@@ -25,4 +25,4 @@ echo "========================================================"
 echo "Iniciando entrenamiento con torchrun..."
 torchrun --nproc_per_node=2 train.py --config "$CONFIG_FILE"
 
-echo "✅ Entrenamiento completado."
+echo "Entrenamiento completado."

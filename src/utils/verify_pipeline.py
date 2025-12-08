@@ -17,28 +17,28 @@ def check_gradients(model):
     # Buscamos el LLM donde sea que esté
     llm = getattr(model, "language_model", None) or getattr(model.model, "language_model", None)
     if not llm: return False
-    
+
     # Buscamos capas
     layers = getattr(llm, "layers", None) or getattr(llm.model, "layers", None)
     if not layers: return False
-        
+
     # Check primera capa
     grad = layers[0].self_attn.q_proj.weight.grad
     if grad is None:
-        print("❌ FALLO: Gradientes vacíos.")
+        print("FALLO: Gradientes vacíos.")
         return False
-        
-    print(f"✅ ÉXITO: Gradiente detectado (Media: {grad.abs().mean():.6f})")
+
+    print(f"ÉXITO: Gradiente detectado (Media: {grad.abs().mean():.6f})")
     return True
 
 def main():
     print(" Iniciando Smoke Test (Agnóstico)...")
-    
+
     try:
         model, processor = build_model_and_processor(mock_cfg)
-        model.train() 
+        model.train()
     except Exception as e:
-        print(f"❌ Error carga: {e}")
+        print(f"Error carga: {e}")
         return
 
     # ---  DETECCIÓN DE TIPO AUTOMÁTICA ---
@@ -54,7 +54,7 @@ def main():
 
     # Procesar
     inputs = processor(text=text, images=dummy_image, return_tensors="pt")
-    
+
     # Mover y Castear
     inputs_final = {}
     for k, v in inputs.items():
@@ -63,22 +63,22 @@ def main():
             inputs_final[k] = v.to(target_device, dtype=target_dtype)
         else:
             inputs_final[k] = v.to(target_device)
-            
+
     inputs_final["labels"] = inputs_final["input_ids"].clone()
 
-    print("\n▶️ [Test] Forward Pass...")
+    print("\n[Test] Forward Pass...")
     try:
         outputs = model(**inputs_final)
-        print(f"✅ Loss: {outputs.loss.item():.4f}")
+        print(f"Loss: {outputs.loss.item():.4f}")
     except Exception as e:
-        print(f"❌ FALLO Forward: {e}")
+        print(f"FALLO Forward: {e}")
         import traceback
         traceback.print_exc()
         return
 
-    print("\n◀️ [Test] Backward Pass...")
+    print("\n[Test] Backward Pass...")
     outputs.loss.backward()
-    
+
     if check_gradients(model):
         print("\n   ¡PRUEBA SUPERADA! ")
         print("   Tu modelo está listo para el clúster.")

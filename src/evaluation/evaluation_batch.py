@@ -42,7 +42,7 @@ def load_config(config_path: str) -> dict:
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ El archivo YAML debe incluir paths.results_dir")
+        raise KeyError("El archivo YAML debe incluir paths.results_dir")
 
     return cfg
 
@@ -88,7 +88,7 @@ def main():
     csv_files = sorted(predictions_dir.glob("predictions_*.csv"))
 
     if not csv_files:
-        print("❌ No se encontraron predicciones en results/predictions/*.csv")
+        print("No se encontraron predicciones en results/predictions/*.csv")
         return
 
     print("============================================================")

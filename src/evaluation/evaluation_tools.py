@@ -45,7 +45,7 @@ def load_config(config_path: str) -> dict:
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ El YAML debe incluir paths.results_dir")
+        raise KeyError("El YAML debe incluir paths.results_dir")
 
     return cfg
 
@@ -62,7 +62,7 @@ def load_predictions(csv_path: str | Path) -> pd.DataFrame:
 
     required_cols = {"id", "question", "reference", "prediction"}
     if not required_cols.issubset(df.columns):
-        raise ValueError(f"❌ El CSV debe contener las columnas: {required_cols}")
+        raise ValueError(f"El CSV debe contener las columnas: {required_cols}")
 
     return df
 

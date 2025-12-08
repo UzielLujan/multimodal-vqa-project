@@ -41,7 +41,7 @@ def load_config(config_path: str):
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ Falta paths.results_dir en el YAML")
+        raise KeyError("Falta paths.results_dir en el YAML")
 
     return cfg
 
@@ -168,7 +168,7 @@ def main():
     args = parser.parse_args()
 
     # 1. Load config
-    cfg = load_config(args.config) 
+    cfg = load_config(args.config)
 
     results_dir = get_path(cfg["paths"]["results_dir"])
     summary_dir = results_dir / "summary"

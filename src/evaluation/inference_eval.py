@@ -31,10 +31,10 @@ def load_config(config_path: str) -> dict:
         cfg = yaml.safe_load(f)
 
     if "paths" not in cfg or "results_dir" not in cfg["paths"]:
-        raise KeyError("❌ El config necesita paths.results_dir")
+        raise KeyError("El config necesita paths.results_dir")
 
     if "inference" not in cfg:
-        raise KeyError("❌ El config necesita sección 'inference'.")
+        raise KeyError("El config necesita sección 'inference'.")
 
     return cfg
 
@@ -60,7 +60,7 @@ def load_model(model_dir: Path):
     processor = AutoProcessor.from_pretrained(str(model_dir))
     model.eval()
 
-    print(f"✅ Modelo cargado ({device}, dtype={dtype})")
+    print(f"Modelo cargado ({device}, dtype={dtype})")
     return model, processor
 
 
@@ -135,7 +135,7 @@ def main():
     dataset = load_from_disk(str(data_dir))
 
     if split not in dataset:
-        raise ValueError(f"❌ Split {split} no encontrado. Splits: {list(dataset.keys())}")
+        raise ValueError(f"Split {split} no encontrado. Splits: {list(dataset.keys())}")
 
     ds = dataset[split]
     n_samples = len(ds)

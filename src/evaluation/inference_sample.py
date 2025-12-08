@@ -58,15 +58,15 @@ def load_config(config_rel_path: str) -> dict:
 
     # Validaciones mínimas
     if "paths" not in cfg:
-        raise KeyError("❌ El config debe contener la sección 'paths'.")
+        raise KeyError("El config debe contener la sección 'paths'.")
 
     required_paths = ["model_dir", "data_dir", "results_dir"]
     for key in required_paths:
         if key not in cfg["paths"]:
-            raise KeyError(f"❌ Falta 'paths.{key}' en el archivo de config.")
+            raise KeyError(f"Falta 'paths.{key}' en el archivo de config.")
 
     if "inference" not in cfg:
-        raise KeyError("❌ El config debe contener la sección 'inference'.")
+        raise KeyError("El config debe contener la sección 'inference'.")
 
     # Defaults razonables si faltan campos
     inf = cfg["inference"]
@@ -87,7 +87,7 @@ def load_config(config_rel_path: str) -> dict:
 #  Carga del modelo + processor (alineado con model_factory)
 # ---------------------------------------------------------
 def load_model(model_dir: Path):
-    print(f"⏳ Cargando modelo desde: {model_dir}...")
+    print(f"Cargando modelo desde: {model_dir}...")
 
     if torch.cuda.is_available():
         device = "cuda"
@@ -104,7 +104,7 @@ def load_model(model_dir: Path):
     processor = AutoProcessor.from_pretrained(str(model_dir))
 
     model.eval()
-    print(f"✅ Modelo cargado ({device}, dtype={dtype})")
+    print(f"Modelo cargado ({device}, dtype={dtype})")
     return model, processor
 
 
@@ -257,7 +257,7 @@ def build_panel_matplotlib(
         )
 
         # Texto formateado
-        ax_txt.set_facecolor("#7290A8EA") # fondo gris 
+        ax_txt.set_facecolor("#7290A8EA") # fondo gris
         ax_txt.axis("off")
         ax_txt.text(
             0.02, 0.98,
@@ -272,7 +272,7 @@ def build_panel_matplotlib(
         out_path.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(out_path, bbox_inches="tight")
         plt.close(fig)
-        print(f"💾 Panel guardado (paper mode) en: {out_path}")
+        print(f"Panel guardado (paper mode) en: {out_path}")
         return
 
     # Crear figura según layout
@@ -331,7 +331,7 @@ def build_panel_matplotlib(
     fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"💾 Panel guardado en: {out_path}")
+    print(f"Panel guardado en: {out_path}")
 
 
 # ---------------------------------------------------------
@@ -391,24 +391,24 @@ def main():
     model, processor = load_model(model_dir)
 
     # 5. Cargar dataset
-    print(f"📂 Cargando dataset desde: {data_dir}")
+    print(f"Cargando dataset desde: {data_dir}")
     dataset = load_from_disk(str(data_dir))
 
     if split not in dataset:
-        raise ValueError(f"❌ El split '{split}' no existe en el dataset. Splits disponibles: {list(dataset.keys())}")
+        raise ValueError(f"El split '{split}' no existe en el dataset. Splits disponibles: {list(dataset.keys())}")
 
     split_ds = dataset[split]
     n_samples = len(split_ds)
     if n_samples == 0:
-        raise RuntimeError(f"❌ El split '{split}' está vacío.")
+        raise RuntimeError(f"El split '{split}' está vacío.")
 
     # 6. Seleccionar índice
     if index < 0 or index >= n_samples:
         idx = random.randint(0, n_samples - 1)
-        print(f"🎲 Índice no válido o negativo. Usando muestra aleatoria: idx={idx} de {n_samples}")
+        print(f"Índice no válido o negativo. Usando muestra aleatoria: idx={idx} de {n_samples}")
     else:
         idx = index
-        print(f"📌 Usando índice proporcionado: idx={idx} de {n_samples}")
+        print(f"Usando índice proporcionado: idx={idx} de {n_samples}")
 
     # 7. Extraer muestra
     item = split_ds[idx]
@@ -417,9 +417,9 @@ def main():
     gt_answer = str(item["answer"])
 
     print("------------------------------------------------------------")
-    print(f"🖼️ Sample idx: {idx}")
-    print(f"❓ Pregunta: {question}")
-    print(f"🟢 GT: {gt_answer}")
+    print(f"Sample idx: {idx}")
+    print(f"Pregunta: {question}")
+    print(f"GT: {gt_answer}")
     print("------------------------------------------------------------")
 
     # 8. Generar predicción (con truncado)
@@ -432,7 +432,7 @@ def main():
         trim_output=trim_output,
         trim_words=trim_words,
     )
-    print(f"🤖 Predicción del modelo (truncada): {pred_answer}")
+    print(f"Predicción del modelo (truncada): {pred_answer}")
     print("------------------------------------------------------------")
 
     # 9. Construir y guardar panel dentro de results/samples/

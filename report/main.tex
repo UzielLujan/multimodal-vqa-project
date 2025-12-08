@@ -205,7 +205,7 @@ Un modelo multimodal se define por su capacidad para procesar y relacionar infor
 La arquitectura general para resolver esto, utilizada en sistemas modernos, se compone de tres módulos fundamentales:
 
 \begin{itemize}
-    \item \textbf{Encoder Visual (El Ojo):} Transforma la imagen de entrada $I \in \mathbb{R}^{H \times W \times 3}$ en una secuencia de \textit{embeddings} visuales abstractos $Z_v$. Modelos como Vision Transformer (ViT) son estándar aquí por su capacidad de dividir la imagen en "parches".
+    \item \textbf{Encoder Visual (El Ojo):} Transforma la imagen de entrada $I \in \mathbb{R}^{H \times W \times 3}$ en una secuencia de \textit{embeddings} visuales abstractos $Z_v$. Modelos como Vision Transformer (ViT) \cite{dosovitskiy2020image} son estándar aquí por su capacidad de dividir la imagen en "parches".
 
     \item \textbf{Adaptador o Proyector (El Puente):} Es el componente crítico que "traduce" el lenguaje visual al textual. Matemáticamente, es una función $f_\theta$ (a menudo un MLP o Q-Former) que proyecta los rasgos visuales $Z_v$ al espacio de entrada del LLM, tal que los tokens visuales proyectados $H_v = f_\theta(Z_v)$ sean indistinguibles dimensionalmente de los tokens de texto.
 
@@ -217,9 +217,9 @@ Esta arquitectura permite que el modelo no solo "vea", sino que razone sobre la 
 % --- FIN NUEVA SECCIÓN ---
 
 \subsection{Modelos de Visión-Lenguaje (VLMs) en la Actualidad}
-Construyendo sobre los fundamentos anteriores, la adaptación de modelos fundacionales ha transformado el estado del arte. Arquitecturas paradigmáticas como \textbf{LLaVA} (Large Language and Vision Assistant) implementan esta fusión proyectando características de encoders robustos (como CLIP o SigLIP) directamente hacia LLMs potentes (como LLaMA o Vicuna).
+Construyendo sobre los fundamentos anteriores, la adaptación de modelos fundacionales ha transformado el estado del arte. Arquitecturas paradigmáticas como \textbf{LLaVA} (Large Language and Vision Assistant) \cite{liu2024visual} implementan esta fusión proyectando características de encoders robustos (como CLIP o SigLIP) directamente hacia LLMs potentes (como LLaMA \cite{touvron2023llama} o Vicuna).
 
-En el contexto médico, la tendencia reciente ha sido utilizar adaptadores eficientes (como LoRA o QLoRA) para "enseñar" medicina a estos modelos generales. Sin embargo, existe una barrera importante: la mayoría de estos enfoques (e.g., Med-PaLM, LLaVA-Med) dependen de recursos computacionales masivos (múltiples GPUs A100), lo que limita su reproducibilidad en hospitales o laboratorios modestos.
+En el contexto médico, la tendencia reciente ha sido utilizar adaptadores eficientes (como LoRA \cite{hu2022lora} o QLoRA) para "enseñar" medicina a estos modelos generales. Sin embargo, existe una barrera importante: la mayoría de estos enfoques (e.g., Med-PaLM, LLaVA-Med) dependen de recursos computacionales masivos (múltiples GPUs A100), lo que limita su reproducibilidad en hospitales o laboratorios modestos.
 
 Nuestra propuesta aborda este hueco específico: demostramos que es posible mantener la arquitectura multimodal sofisticada descrita anteriormente, pero optimizada mediante el uso de modelos compactos (\textbf{TinyLlama}) y encoders eficientes, democratizando así el acceso a herramientas de diagnóstico asistido por IA.
 
@@ -287,9 +287,9 @@ La arquitectura implementada es un modelo de Visión-Lenguaje (VLM) basado en el
 El modelo consta de tres componentes principales, ensamblados mediante una estrategia de "inyección quirúrgica" para evitar la duplicidad de parámetros. La Figura \ref{fig:architecture} ilustra el flujo de información a través de estos componentes.
 
 \begin{enumerate}
-    \item \textbf{Encoder Visual (Ojos):} Se utilizó \textbf{CLIP-ViT-Large-Patch14-336}. Este modelo procesa imágenes de alta resolución ($336 \times 336$) y genera embeddings visuales ricos. Se seleccionó CLIP sobre SigLIP debido a su estabilidad nativa con la arquitectura LLaVA y su compatibilidad comprobada.
+    \item \textbf{Encoder Visual (Ojos):} Se utilizó \textbf{CLIP-ViT-Large-Patch14-336} \cite{radford2021learning}. Este modelo procesa imágenes de alta resolución ($336 \times 336$) y genera embeddings visuales ricos. Se seleccionó CLIP sobre SigLIP debido a su estabilidad nativa con la arquitectura LLaVA \cite{liu2024visual} y su compatibilidad comprobada.
     \item \textbf{Proyector Multimodal (Conector):} Un Perceptrón Multicapa (MLP) con activación GELU que proyecta los embeddings visuales al espacio latente del modelo de lenguaje. Este componente es crucial para alinear las representaciones visuales con las textuales.
-    \item \textbf{Modelo de Lenguaje (Cerebro):} Se implementó \textbf{TinyLlama-1.1B}, un LLM compacto pero potente. Su tamaño reducido (~1.1 billones de parámetros) permitió realizar un ajuste fino completo (Full Fine-Tuning) en una sola GPU de 24GB, evitando la necesidad de cuantización agresiva que degradaría el rendimiento.
+    \item \textbf{Modelo de Lenguaje (Cerebro):} Se implementó \textbf{TinyLlama-1.1B} \cite{zhang2024tinyllama}, un LLM compacto pero potente. Su tamaño reducido (~1.1 billones de parámetros) permitió realizar un ajuste fino completo (Full Fine-Tuning) en una sola GPU de 24GB, evitando la necesidad de cuantización agresiva que degradaría el rendimiento.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -494,58 +494,92 @@ El desarrollo se realizó utilizando \textbf{PyTorch} y la librería \textbf{Tra
 Para cuantificar el desempeño del modelo, se utilizaron métricas estándar en VQA y generación de texto, adaptadas a la naturaleza del dataset PathVQA. A continuación se definen formalmente:
 
 \begin{itemize}
-    \item \textbf{Accuracy (Yes/No):} Mide la proporción de respuestas correctas en el subconjunto de preguntas binarias $Q_{binary}$. Sea $y_i$ la respuesta predicha y $\hat{y}_i$ la respuesta real para la $i$-ésima pregunta:
+    \item \textbf{Accuracy Yes/No:} Diseñada para preguntas binarias, compara solo el primer token de la predicción. Sea $y_i^{GT} \in \{\text{yes},\text{no}\}$ y $f_i^{pred}$ la secuencia generada:
     \begin{equation}
-        \text{Acc}_{Y/N} = \frac{1}{|Q_{binary}|} \sum_{i \in Q_{binary}} \mathbb{I}(y_i = \hat{y}_i)
-    \end{equation}
-    donde $\mathbb{I}(\cdot)$ es la función indicadora que vale 1 si la condición es verdadera y 0 en caso contrario.
-
-    \item \textbf{Accuracy (General):} Evalúa la coincidencia exacta (\textit{Exact Match}) entre la respuesta generada y la referencia para todo el conjunto de evaluación $Q_{total}$. Es una métrica estricta que penaliza cualquier variación sintáctica.
-    \begin{equation}
-        \text{Acc}_{Gen} = \frac{1}{|Q_{total}|} \sum_{i=1}^{|Q_{total}|} \mathbb{I}(y_i = \hat{y}_i)
+        Accuracy_{Yes/No} = \frac{1}{N} \sum_{i=1}^{N} 1( y_i^{GT} = \text{first}(f_i^{pred}) \big)
     \end{equation}
 
-    \item \textbf{Keyword Accuracy:} Una métrica más flexible diseñada para preguntas abiertas. Se considera un acierto si la respuesta generada $y_i$ contiene la palabra clave principal $k_i$ extraída de la respuesta de referencia $\hat{y}_i$.
+    \item \textbf{Keyword Accuracy:} Evalúa si el concepto principal correcto (órgano, patología) está presente en la respuesta generada. Sea $k_i$ la palabra clave del GT:
     \begin{equation}
-        \text{Acc}_{Key} = \frac{1}{|Q_{open}|} \sum_{i \in Q_{open}} \mathbb{I}(k_i \in y_i)
+        Accuracy_{Keyword} = \frac{1}{N} \sum_{i=1}^{N} 1( k_i \subseteq f_i^{pred} \big)
     \end{equation}
-    Esto permite evaluar la corrección semántica incluso si la formulación difiere (e.g., "tumor cells" vs "tumor").
 
-    \item \textbf{BLEU (Bilingual Evaluation Understudy):} Evalúa la calidad de la generación de texto comparando la superposición de n-gramas entre la respuesta generada y la referencia. Se calcula como el producto de la precisión geométrica de n-gramas ($p_n$) y una penalización por brevedad (BP):
+    \item \textbf{Accuracy Flexible:} Métrica híbrida que considera un acierto si existe coincidencia exacta, inclusión completa o coincidencia del primer token.
+    Sea la función auxiliar:
     \begin{equation}
-        \text{BLEU} = \text{BP} \cdot \exp\left(\sum_{n=1}^{N} w_n \log p_n\right)
+        match(y_i^{GT}, f_i^{pred}) =
+        \begin{cases}
+        1 & y_i^{GT} = f_i^{pred} \\
+        1 & y_i^{GT} \subseteq f_i^{pred} \\
+        1 & \text{first}(y_i^{GT}) = \text{first}(f_i^{pred}) \\
+        0 & \text{otro caso}
+        \end{cases}
     \end{equation}
-    donde $w_n$ son los pesos uniformes para cada tamaño de n-grama (usualmente $N=4$) y BP penaliza respuestas excesivamente cortas.
+    Entonces:
+    \begin{equation}
+        Accuracy_{Flexible} = \frac{1}{N} \sum_{i=1}^{N} match(y_i^{GT}, f_i^{pred})
+    \end{equation}
+
+    \item \textbf{BLEU-short:} Adaptación del BLEU clásico optimizada para respuestas cortas (máximo 5 tokens).
+    \begin{equation}
+        BLEU_{short} = BP \cdot \exp\left( \sum_{n=1}^4 w_n \log p_n^{(5)} \right)
+    \end{equation}
+    donde $p_n^{(5)}$ es la precisión de n-gramas evaluando solo los primeros 5 tokens.
+
+    \item \textbf{BLEU Clásico:} Incluido por completitud para comparación con literatura previa.
+    \begin{equation}
+        BLEU = BP \cdot \exp\left( \sum_{n=1}^4 w_n \log p_n \right)
+    \end{equation}
 \end{itemize}
 
 % Incluir métricas, visualizaciones, gráficas y tablas relevantes. Debes proponer un baseline muy sencillo para comparar los resultados.
 \section{Resultados}
 
-Se evaluó el desempeño del modelo \textbf{TinyLlama-CLIP-768} en el conjunto de validación de PathVQA. Para contextualizar los resultados, se estableció un \textit{baseline} teórico basado en la clase mayoritaria para preguntas binarias (aleatorio/frecuente $\approx 50\%$) y respuestas vacías o aleatorias para preguntas abiertas.
+Se evaluó el desempeño de dos variantes del modelo: \textbf{TinyLlama-CLIP-768} (versión final con regularización) y \textbf{TinyLlama-CLIP-1024} (versión inicial con mayor contexto). En este análisis, el modelo \textbf{TinyLlama-CLIP-1024} actúa como el \textit{baseline} experimental, permitiendo cuantificar las mejoras introducidas en la versión final optimizada (768).
 
-\subsection{Métricas Cuantitativas}
-La Tabla \ref{tab:results} resume las métricas obtenidas. El modelo alcanzó una exactitud del \textbf{86.18\%} en preguntas cerradas (Yes/No), demostrando una sólida capacidad de discriminación visual. En preguntas abiertas, la exactitud exacta fue del \textbf{32.80\%}, con una exactitud por palabras clave (\textit{Keyword Accuracy}) del \textbf{57.76\%}, lo que indica que el modelo frecuentemente recupera los conceptos médicos correctos aunque la estructura sintáctica difiera de la referencia.
+\subsection{Métricas Cuantitativas y Comparación de Modelos}
+La Tabla \ref{tab:results} presenta la comparación directa entre los modelos evaluados. El modelo \textbf{TinyLlama-CLIP-768} demostró ser superior consistentemente en todas las métricas críticas respecto al baseline de 1024 tokens.
 
 \begin{table}[h]
 \centering
-\caption{Resultados de evaluación en el conjunto de validación (PathVQA). El modelo propuesto supera significativamente al baseline aleatorio.}
+\caption{Comparación de desempeño en el conjunto de validación (PathVQA). El modelo 768 supera al baseline (1024) en estabilidad (Yes/No) y precisión semántica (Keyword).}
 \label{tab:results}
-\begin{tabular}{|l|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|}
 \hline
-\textbf{Modelo} & \textbf{Acc (Yes/No)} & \textbf{Acc (General)} & \textbf{Keyword Acc} & \textbf{BLEU} \\ \hline
-Baseline (Aleatorio) & $\sim 50.0\%$ & $< 1.0\%$ & - & - \\ \hline
-\textbf{TinyLlama-CLIP-768} & \textbf{86.18\%} & \textbf{32.80\%} & \textbf{57.76\%} & \textbf{0.022} \\ \hline
+\textbf{Modelo} & \textbf{Acc Y/N} & \textbf{Acc Flex} & \textbf{Key Acc} & \textbf{BLEU-s} & \textbf{BLEU} \\ \hline
+TinyLlama-CLIP-1024 (Baseline) & 82.27\% & 32.58\% & 56.93\% & 0.038 & \textbf{0.024} \\ \hline
+\textbf{TinyLlama-CLIP-768} & \textbf{86.18\%} & \textbf{32.90\%} & \textbf{57.76\%} & \textbf{0.038} & 0.022 \\ \hline
 \end{tabular}
 \end{table}
 
-\subsection{Dinámica de Entrenamiento}
-La Figura \ref{fig:training_curve} muestra la evolución de la pérdida y la exactitud durante el entrenamiento. Se observa una convergencia estable, donde la exactitud en validación (línea naranja) sigue de cerca a la de entrenamiento, indicando una buena generalización sin sobreajuste severo.
+Los resultados indican que la reducción de la ventana de contexto y la aplicación de regularización en el modelo 768 mejoraron significativamente la \textbf{Accuracy Yes/No} (+3.91\%), lo que sugiere una mayor estabilidad en la toma de decisiones binarias críticas para el diagnóstico.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/training_plot_768.png}
-    \caption{Curvas de aprendizaje del modelo. La pérdida disminuye consistentemente mientras la exactitud aumenta, estabilizándose alrededor de la época 3.}
-    \label{fig:training_curve}
+    \includegraphics[width=\linewidth]{figures/summary_metrics_comparison.png}
+    \caption{Comparación visual de métricas entre los modelos TinyLlama-CLIP-768 y TinyLlama-CLIP-1024. Se aprecia la superioridad del modelo 768 en métricas clave.}
+    \label{fig:metrics_comparison}
+\end{figure}
+
+\subsection{Dinámica de Entrenamiento}
+La Figura \ref{fig:training_curves_comparison} muestra la curvas de aprendizaje para ambos modelos VQA. Se observa una convergencia estable.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/training_plot_768.png}
+        \caption{TinyLlama-CLIP-768.}
+        \label{fig:training_curve}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/training_plot_1024.png}
+        \caption{TinyLlama-CLIP-1024.}
+        \label{fig:training_curve_1024}
+    \end{minipage}
+    \caption{Curvas de aprendizaje comparativas. Izquierda: Modelo final (768 tokens) mostrando convergencia estable. Derecha: Baseline (1024 tokens).}
+    \label{fig:training_curves_comparison}
 \end{figure}
 
 \subsection{Análisis Cualitativo}
@@ -583,11 +617,27 @@ La Figura \ref{fig:samples} presenta ejemplos de inferencia del modelo. Se obser
         \centering
         \includegraphics[width=\linewidth]{figures/sample_validation_05786.png}
         %\caption{Ejemplo 5}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_04933.png}
+        %\caption{Ejemplo 6}
     \end{minipage}
 
     \caption{Muestras de predicciones del modelo en el conjunto de validación. El modelo genera respuestas coherentes alineadas con la pregunta visual.}
     \label{fig:samples}
 \end{figure}
+
+\subsection{Análisis de Errores}
+Un análisis cualitativo detallado de las predicciones incorrectas revela patrones consistentes que explican las limitaciones actuales del modelo:
+
+\begin{itemize}
+    \item \textbf{Verborrea y Ruido Semántico:} Ambos modelos, especialmente la versión de 1024 tokens, tienden a generar descripciones excesivamente detalladas. Aunque la información clínica añadida suele ser plausible, introduce "ruido" que penaliza métricas de coincidencia exacta. Por ejemplo, ante la pregunta \textit{"what organ is shown?"}, el modelo puede responder \textit{"liver with metastatic appearance..."} en lugar de simplemente \textit{"liver"}.
+
+    \item \textbf{Alucinación de Detalles (Modelo 1024):} El modelo con mayor contexto (1024) mostró una mayor propensión a inventar condiciones patológicas no presentes en la imagen (e.g., mencionar "inflamación" o "quistes" sin evidencia clara), lo que justifica la elección del modelo 768 como la versión final más robusta.
+
+    \item \textbf{Generalización vs. Especificidad:} El sistema demuestra una alta capacidad para identificar la región anatómica general (e.g., "kidney region"), pero ocasionalmente falla al distinguir subestructuras específicas (e.g., "renal cortex"), lo cual es esperable dado que el encoder visual se mantuvo congelado y no se especializó en texturas finas de histopatología.
+\end{itemize}
 
 % Análisis crı́tico de los resultados, limitaciones del enfoque y posibles lı́neas de mejora.
 \section{Discusión}
@@ -623,6 +673,9 @@ Este proyecto ha demostrado la viabilidad técnica y práctica de desarrollar si
 Los hallazgos experimentales indican que no es estrictamente necesario recurrir a modelos masivos (como LLaMA-3 8B o GPT-4) para obtener resultados competentes en tareas especializadas. Con una exactitud del \textbf{86.18\%} en preguntas binarias y una capacidad notable para recuperar conceptos clave en preguntas abiertas (\textbf{57.76\%}), el modelo propuesto se perfila como una herramienta de asistencia preliminar útil para la educación y el triaje en patología digital.
 
 Finalmente, la superación de los desafíos de infraestructura mediante la aplicación de principios de ingeniería (Gradient Accumulation, gestión de memoria) y metodología TRIZ subraya la importancia de la optimización de software sobre la fuerza bruta del hardware. Este enfoque democratiza el acceso a la inteligencia artificial médica, permitiendo que laboratorios con recursos limitados puedan investigar y desplegar soluciones de vanguardia.
+
+\section{Disponibilidad de Recursos}
+El código fuente completo, los scripts de entrenamiento y la documentación detallada del proyecto se encuentran disponibles públicamente en el siguiente repositorio de GitHub: \url{https://github.com/UzielLujan/multimodal-vqa-project}.
 
 % Bajo un formato académico uniforme (APA o IEEE).
 \bibliography{refs.bib}

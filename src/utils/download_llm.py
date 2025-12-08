@@ -17,28 +17,28 @@ LLM_DIR = CHECKPOINTS_DIR / "TinyLlama-1.1B-Chat"
 def download_llm():
     print(f" Raíz del proyecto detectada en: {PROJECT_ROOT}")
     print(f" Iniciando descarga de TinyLlama en: {LLM_DIR}")
-    
+
     # Asegurar que el directorio existe
     LLM_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     # 1. Descargar Pesos y Configs
     snapshot_download(
         repo_id=LLM_ID,
         local_dir=str(LLM_DIR), # Convertir Path a str para huggingface
         local_dir_use_symlinks=False,
-        ignore_patterns=["*.msgpack", "*.h5", "*.ot", "flax*", "tf*"] 
+        ignore_patterns=["*.msgpack", "*.h5", "*.ot", "flax*", "tf*"]
     )
-    
+
     # 2. Asegurar Tokenizer
     print("   Verificando Tokenizer...")
     try:
         tokenizer = AutoTokenizer.from_pretrained(LLM_ID)
         tokenizer.save_pretrained(str(LLM_DIR))
-        print("   ✅ Tokenizer verificado y guardado.")
+        print("Tokenizer verificado y guardado.")
     except Exception as e:
-        print(f"   ⚠️ Nota sobre tokenizer: {e}")
+        print(f"Nota sobre tokenizer: {e}")
 
-    print("\n✅ ¡Listo! LLM descargado correctamente en la carpeta del proyecto.")
+    print("\n¡Listo! LLM descargado correctamente en la carpeta del proyecto.")
 
 if __name__ == "__main__":
     download_llm()

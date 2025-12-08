@@ -28,18 +28,18 @@ def check_path(path: Path, is_dir=False, is_file=False):
 
     # Verificar existencia general
     if not path.exists():
-        raise FileNotFoundError(f"❌ La ruta crítica no existe: {path}")
+        raise FileNotFoundError(f"La ruta crítica no existe: {path}")
 
     # Si se requiere archivo
     if is_file:
         if not path.is_file():
-            raise FileNotFoundError(f"❌ Se esperaba un archivo: {path}")
+            raise FileNotFoundError(f"Se esperaba un archivo: {path}")
         return path
 
     # Si se requiere directorio
     if is_dir:
         if not path.is_dir():
-            raise NotADirectoryError(f"❌ Se esperaba un directorio: {path}")
+            raise NotADirectoryError(f"Se esperaba un directorio: {path}")
         return path
 
     # Si no se especificó nada, simplemente devolver path existente

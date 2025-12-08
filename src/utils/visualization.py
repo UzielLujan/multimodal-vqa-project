@@ -8,7 +8,7 @@ def plot_training_loss(log_file: Path, save_path: Path):
     Lee el log JSONL y genera una gráfica de la curva de aprendizaje.
     """
     if not log_file.exists():
-        print(f"⚠️ No se encontró archivo de log en {log_file}")
+        print(f"No se encontró archivo de log en {log_file}")
         return
 
     data = []
@@ -18,23 +18,23 @@ def plot_training_loss(log_file: Path, save_path: Path):
                 data.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    
+
     if not data:
-        print("⚠️ El archivo de log está vacío.")
+        print("El archivo de log está vacío.")
         return
 
     df = pd.DataFrame(data)
-    
+
     # Filtramos solo las filas que tengan 'loss' (a veces loggea evaluación sin loss)
     if 'loss' not in df.columns:
-        print("⚠️ No hay métrica 'loss' en los logs todavía.")
+        print("No hay métrica 'loss' en los logs todavía.")
         return
 
     df_train = df.dropna(subset=['loss'])
 
     plt.figure(figsize=(10, 6))
     plt.plot(df_train['step'], df_train['loss'], label='Training Loss', color='blue', linewidth=2)
-    
+
     # Si hay eval_loss, graficarla también
     if 'eval_loss' in df.columns:
         df_eval = df.dropna(subset=['eval_loss'])
@@ -46,7 +46,7 @@ def plot_training_loss(log_file: Path, save_path: Path):
     plt.ylabel("Pérdida (Loss)")
     plt.legend()
     plt.grid(True, alpha=0.3)
-    
-    print(f"📊 Guardando gráfica de pérdida en: {save_path}")
+
+    print(f"Guardando gráfica de pérdida en: {save_path}")
     plt.savefig(save_path)
     plt.close()

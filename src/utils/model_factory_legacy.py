@@ -23,17 +23,17 @@ def build_model_and_processor(cfg):
     # 1. Resolver rutas
     llm_path = str(get_path(cfg['paths']['llm_model_path']))
     vision_path = str(get_path(cfg['paths']['vision_tower_path']))
-    
-    print(f"🏗️ [Factory] Cargando rutas:\n   - LLM: {llm_path}\n   - Vision: {vision_path}")
+
+    print(f"[Factory] Cargando rutas:\n   - LLM: {llm_path}\n   - Vision: {vision_path}")
 
     # -------------------------------------------------------------------------
     # PASO 1: Configurar Tokenizer y obtener ID real (Corrección Uzi)
     # -------------------------------------------------------------------------
-    print("🔧 [Factory] Configurando Tokenizer y IDs...")
+    print("[Factory] Configurando Tokenizer y IDs...")
     tokenizer = AutoTokenizer.from_pretrained(llm_path)
     tokenizer.add_tokens(["<image>"], special_tokens=True)
-    tokenizer.pad_token_id = tokenizer.eos_token_id 
-    
+    tokenizer.pad_token_id = tokenizer.eos_token_id
+
     # Obtener ID dinámico para evitar hardcoding
     image_token_index = tokenizer.convert_tokens_to_ids("<image>")
     print(f"   -> Token <image> asignado al ID: {image_token_index}")
@@ -41,7 +41,7 @@ def build_model_and_processor(cfg):
     # 2. Cargar Configuraciones
     text_config = AutoConfig.from_pretrained(llm_path)
     siglip_full_config = AutoConfig.from_pretrained(vision_path)
-    vision_config = siglip_full_config.vision_config 
+    vision_config = siglip_full_config.vision_config
 
     # 3. Configuración LLaVA
     llava_config = LlavaConfig(
@@ -62,56 +62,56 @@ def build_model_and_processor(cfg):
     # -------------------------------------------------------------------------
     # 5. Instanciar LLaVA (Esqueleto VACÍO)
     # -------------------------------------------------------------------------
-    print("💀 [Factory] Instanciando esqueleto LLaVA (init_empty_weights)...")
+    print("[Factory] Instanciando esqueleto LLaVA (init_empty_weights)...")
     with init_empty_weights():
         model = LlavaForConditionalGeneration(llava_config)
-    
+
     model.tie_weights()
 
     # -------------------------------------------------------------------------
     # 6. INYECCIÓN DE PESOS
     # -------------------------------------------------------------------------
-    
+
     # A) LLaMA-3 (4-bit)
-    print("🧠 [Factory] Inyectando LLaMA-3 (4-bit)...")
+    print("[Factory] Inyectando LLaMA-3 (4-bit)...")
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.float16
     )
     llm_model = AutoModelForCausalLM.from_pretrained(
-        llm_path, 
-        quantization_config=bnb_config, 
+        llm_path,
+        quantization_config=bnb_config,
         torch_dtype=torch.float16,
-        device_map="auto" 
+        device_map="auto"
     )
     model.language_model = llm_model
-    
+
     # Redimensionar embeddings (Vital por el token <image>)
     print(f"   -> Redimensionando embeddings a: {len(tokenizer)}")
     model.resize_token_embeddings(len(tokenizer))
 
     # B) SigLIP (Vision Tower)
-    print("👀 [Factory] Inyectando SigLIP (Carga REAL)...")
+    print("[Factory] Inyectando SigLIP (Carga REAL)...")
     siglip_full_model = AutoModel.from_pretrained(
-        vision_path, 
+        vision_path,
         torch_dtype=torch.float16,
         low_cpu_mem_usage=False, # Vital para evitar Meta Tensor
-        device_map=None 
+        device_map=None
     )
-    
+
     if torch.cuda.is_available():
         siglip_full_model = siglip_full_model.to("cuda")
 
     model.vision_tower = siglip_full_model.vision_model
-    
+
     del siglip_full_model
     gc.collect()
     torch.cuda.empty_cache()
 
     # C) Proyector Multimodal
-    print("🔌 [Factory] Inicializando Proyector Multimodal...")
-    model.multi_modal_projector.to_empty(device="cuda") 
+    print("[Factory] Inicializando Proyector Multimodal...")
+    model.multi_modal_projector.to_empty(device="cuda")
     for p in model.multi_modal_projector.parameters():
         if p.dim() > 1:
             torch.nn.init.xavier_uniform_(p)
@@ -119,11 +119,11 @@ def build_model_and_processor(cfg):
     # -------------------------------------------------------------------------
     # 7. Configuración LoRA (CORRECCIÓN DIEGO)
     # -------------------------------------------------------------------------
-    print("🔧 [Factory] Configurando LoRA...")
-    
+    print("[Factory] Configurando LoRA...")
+
     # Habilitar gradientes en inputs para checkpoints
-    model.enable_input_require_grads() 
-    
+    model.enable_input_require_grads()
+
     # Aseguramos config correcta
     model.config.pad_token_id = tokenizer.pad_token_id
 
@@ -137,8 +137,8 @@ def build_model_and_processor(cfg):
         bias="none",
         task_type="CAUSAL_LM"
     )
-    
+
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
-    
+
     return model, processor

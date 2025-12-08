@@ -6,135 +6,101 @@
 
 ## **Descripción General**
 
-Este repositorio contiene la implementación del proyecto final del curso **Procesamiento de Texto e Imágenes con Deep Learning**, cuyo objetivo es desarrollar un sistema moderno de **Visual Question Answering (VQA)** aplicado a **imágenes histopatológicas**.
+Este repositorio contiene la implementación final del proyecto para el curso **Procesamiento de Texto e Imágenes con Deep Learning**. El objetivo es un sistema de **Visual Question Answering (VQA)** eficiente aplicado a **imágenes histopatológicas**.
 
-El proyecto utiliza modelos multimodales recientes de visión–lenguaje, en particular **LLaVA 1.5 (SigLIP + LLaMA-3) con LoRA**, evaluados sobre el dataset **PathVQA**.
+Debido a restricciones de hardware en el entorno de cómputo (GPUs de 24GB sin acceso a internet), el proyecto evolucionó de una propuesta inicial basada en LLaMA-3 hacia una arquitectura optimizada utilizando **TinyLlama-1.1B** y **CLIP-ViT-Large**, entrenada mediante **Full Fine-Tuning**.
 
 ---
 
-## **Objetivo del Proyecto**
+## **Arquitectura del Modelo**
 
-Construir y evaluar un sistema multimodal capaz de responder preguntas en lenguaje natural basadas en imágenes histológicas, comparando:
+El sistema implementado sigue el paradigma LLaVA pero adaptado para eficiencia:
 
-* Un baseline clásico (opcional) basado en CLIP + GPT-2.
-* Un modelo moderno VLM: **LLaVA 1.5**.
+*   **Encoder Visual:** `CLIP-ViT-Large-patch14-336` (Frozen).
+*   **Conector:** MLP (Proyector) entrenable.
+*   **Modelo de Lenguaje:** `TinyLlama-1.1B-Chat` (Full Fine-Tuning).
+*   **Estrategia de Entrenamiento:** Full Fine-Tuning del LLM y el proyector, manteniendo el encoder visual congelado.
 
 ---
 
 ## **Dataset**
 
 **PathVQA** (HuggingFace):
-
-* ~5,000 imágenes histopatológicas
-* 32,799 pares Pregunta–Respuesta
-* Preguntas: Sí/No, What/Where/How, hallazgos diagnósticos, etc.
-
-Link: [https://huggingface.co/datasets/flaviagiammarino/path-vqa](https://huggingface.co/datasets/flaviagiammarino/path-vqa)
+*   ~5,000 imágenes histopatológicas.
+*   32,632 pares Pregunta–Respuesta.
+*   Tipos de preguntas: Binarias (Yes/No) y Abiertas (Open-ended).
 
 ---
 
-## **Modelo Principal**
-
-El modelo seleccionado es **LLaVA 1.5**, compuesto por:
-
-* **SigLIP** como encoder visual
-* **MLP** como módulo de fusión visión→lenguaje
-* **LLaMA-3** como modelo generador
-* **LoRA** para fine-tuning eficiente
-
-Pipeline general:
-
-```
-Imagen → SigLIP → MLP multimodal → LLaMA-3 → Respuesta generada
-```
-
----
-
-## **Métricas**
-
-Se emplean métricas separadas por tipo de pregunta:
-
-### Para Sí/No:
-
-* Accuracy
-* F1-score (macro)
-
-### Para preguntas abiertas:
-
-* BLEU
-* CIDEr
-* (Opcional) ROUGE-L, BERTScore
-
----
-
-## **Estructura Propuesta del Repositorio**
+## **Estructura del Repositorio**
 
 ```bash
-multimodal_vqa_project/
-├── configs/               # Archivos .yaml con hiperparámetros (LR, batch_size, LoRA r, etc.)
-├── checkpoints/           # Aquí se guardan los pesos (modelos .pt, adaptadores LoRA)
-├── data/
-│   ├── raw/                 # Datos originales (imágenes y JSONs de PathVQA)
-│   └── processed/           # Datasets tokenizados o tensores pre-procesados
-├── docs/
-│   ├── Protocolo_Proyecto_VQA.md
-│   ├── Bitacora_tecnica.md
-│   └── Indicaciones_Proyecto_final.md
-├── logs/                    # Logs de entrenamiento 
-├── notebooks/               # EDA y prototipado rápido
-├── results/                 # Salidas finales: Gráficas generadas, tablas de métricas, CSVs de predicciones
-├── src/
-│   ├── __init__.py
-│   ├── data/                # Loaders, transformaciones y clases Dataset custom
-│   ├── models/              # Definición de la arquitectura (LLaVA interface, peft config)
-│   ├── training/            # Bucles de entrenamiento (Trainer class, validación)
-│   ├── evaluation/          # Scripts de métricas (BLEU, CIDEr, Accuracy)
-│   └── utils/               # Funciones auxiliares (seeding, visualización, logger setup)
-├── scripts/                 # Scripts de bash slurm para ejecutar experimentos en cluster de cómputo
-├── train.py                 # Script principal de ejecución para entrenar
-├── inference.py             # Script para generar respuestas sobre el test set
-├── README.md
-└── environment.yml          # Dependencias del proyecto
+multimodal-vqa-project/
+├── configs/               # Configuraciones YAML (entrenamiento e inferencia)
+├── data/                  # Datos (raw y processed)
+├── docs/                  # Documentación y bitácoras del proyecto
+├── notebooks/             # Análisis Exploratorio de Datos (EDA)
+├── report/                # Código fuente LaTeX del reporte final
+├── results/               # Salidas: logs, plots, predicciones y métricas
+│   ├── plots/
+│   ├── predictions/
+│   └── summary/
+├── scripts/               # Scripts Bash para ejecución en clúster/local
+├── src/                   # Código fuente Python
+│   ├── data/              # Dataset y Dataloaders
+│   ├── evaluation/        # Scripts de métricas y visualización
+│   ├── models/            # Definición de la arquitectura (TinyLlama + CLIP)
+│   ├── training/          # Loop de entrenamiento y callbacks
+│   └── utils/             # Utilidades generales
+└── environment.yml        # Dependencias Conda
 ```
-
-* `configs/`: Archivos YAML de configuración.
-* `data/`: Datos procesados (PathVQA).
-* `checkpoints/`: Pesos del encoder visual (SigLIP).
-* `src/`: Código fuente modular.
-* `scripts/`: Scripts SLURM para el clúster Lab-SB.
 
 ---
 
-## **Estado del Proyecto**
+## **Resultados Principales**
 
-El proyecto se encuentra en fase de organización inicial. Próximos pasos:
+El modelo final (TinyLlama-CLIP-768) superó al baseline (versión 1024 tokens) en estabilidad y métricas clave:
 
-* Implementar carga de PathVQA.
-* Configurar modelo LLaVA 1.5.
-* Añadir soporte para LoRA.
-* Definir experimentos y métricas.
+| Métrica | TinyLlama-CLIP-768 (Final) |
+| :--- | :--- |
+| **Accuracy (Yes/No)** | **86.18%** |
+| **Keyword Accuracy** | **57.76%** |
+| **Flexible Accuracy** | **32.90%** |
+
+---
+
+## **Instrucciones de Uso**
+
+### 1. Configuración del Entorno
+```bash
+conda env create -f environment.yml
+conda activate vqa-tiny-env
+```
+
+### 2. Preparación de Datos
+Descarga y preprocesamiento del dataset PathVQA:
+```bash
+bash scripts/run_data.sh
+```
+
+### 3. Entrenamiento
+Ejecutar el entrenamiento (Full Fine-Tuning):
+```bash
+bash scripts/run_train.sh
+```
+
+### 4. Inferencia y Evaluación
+Generar predicciones y calcular métricas sobre el set de validación:
+```bash
+bash scripts/run_inference_eval.sh
+```
 
 ---
 
 ## **Autores**
 
-- **Uziel Isaí Luján López**  
-- **Diego Paniagua Molina**     
+- **Uziel Isaí Luján López**
+- **Diego Paniagua Molina**
 
-##  Estado
-
-En desarrollo – versión inicial del proyecto.  
-
-## Despliegue en Clúster (Lab-SB)
-
-### 1. Preparación de Datos (Local)
-Los datos y el encoder visual ya están descargados en `data/raw` y `checkpoints/siglip_vision_tower`. Subir la carpeta completa `multimodal_vqa_project`.
-
-### 2. Configuración de LLaMA-3
-Como el clúster no tiene internet, **no intentes descargar LLaMA**.
-Edita `configs/train_config.yaml` y cambia la ruta de `llm_model_path` a la ubicación absoluta de los pesos en el clúster.
-
-```yaml
-paths:
-  # Ejemplo:
-  llm_model_path: "/home/est_posgrado_uziel.lujan/modelos/llama3-8b-hf"
+---
+*Centro de Investigación en Matemáticas (CIMAT) - 2025*
