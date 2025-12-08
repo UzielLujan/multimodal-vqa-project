@@ -11,9 +11,23 @@
 
 %% Minted listings support
 %% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
-\usepackage{minted}
+%\usepackage{minted}
 %% auto break lines
-\setminted{breaklines=true}
+%\setminted{breaklines=true}
+
+\usepackage{tikz}
+\usepackage{float}
+\restylefloat{figure}
+\usetikzlibrary{positioning, fit, calc, shapes.geometric, arrows.meta, shadows, backgrounds}
+\usepackage{fontawesome5}
+%\usepackage{standalone}
+
+\definecolor{paperblue}{RGB}{218, 232, 252}
+\definecolor{papergreen}{RGB}{213, 232, 212}
+\definecolor{papergray}{RGB}{245, 245, 245}
+\definecolor{paperborder}{RGB}{108, 142, 191}
+\definecolor{frozengray}{RGB}{102, 102, 102}
+\definecolor{bgGray}{RGB}{250, 250, 250}
 
 %%
 %% end of the preamble, start of the body of the document source.
@@ -68,7 +82,7 @@ email=diego.paniagua@cimat.mx,
 
 %% Maximo 250 palabras, donde se describa el problema abordado, la base de datos empleada, los métodos utilizados, los resultados obtenidos y las conclusiones principales.
 \begin{abstract}
-El Visual Question Answering (VQA) en imágenes histopatológicas representa un reto fundamental para la inteligencia artificial médica, al requerir la integración de señales visuales complejas y razonamiento en lenguaje natural. En este trabajo se aborda el problema de construir un sistema VQA robusto bajo restricciones reales de hardware, utilizando el dataset PathVQA (32,632 pares pregunta-respuesta sobre 4,289 imágenes). Se implementó una arquitectura multimodal basada en CLIP-ViT-Large como encoder visual y TinyLlama-1.1B como modelo de lenguaje, conectados mediante un proyector MLP y entrenados con Full Fine-Tuning. El pipeline fue adaptado para ejecutarse eficientemente en un clúster con GPUs de 24GB VRAM, superando los bloqueos de memoria y compatibilidad que impidieron el uso de LLaMA-3 y SigLIP. Los resultados preliminares muestran que, incluso con modelos compactos, es posible obtener respuestas clínicamente coherentes y métricas competitivas en VQA médico. Este trabajo demuestra la viabilidad de soluciones accesibles y reproducibles para tareas avanzadas de IA en salud, abriendo la puerta a futuras optimizaciones y aplicaciones clínicas.
+El Visual Question Answering (VQA) en histopatología desafía a la IA a interpretar patrones tisulares complejos y razonar en lenguaje natural, usualmente demandando recursos computacionales prohibitivos. Este trabajo aborda dicho problema bajo restricciones estrictas de hardware, utilizando el dataset PathVQA (32,632 pares QA). Se desarrolló una arquitectura multimodal eficiente integrando CLIP-ViT-Large como encoder visual y TinyLlama-1.1B como modelo de lenguaje, conectados por un proyector MLP y entrenados mediante Full Fine-Tuning en una GPU de 24GB. Esta configuración superó limitaciones de memoria que inviabilizaron modelos más grandes como LLaMA-3. Los resultados demuestran una alta eficacia, alcanzando una exactitud del 86.18\% en preguntas binarias y un 57.76\% de exactitud por palabras clave en preguntas abiertas, validando la capacidad del modelo para identificar conceptos médicos relevantes. Se concluye que es posible construir sistemas de asistencia diagnóstica robustos y accesibles utilizando modelos compactos optimizados, sin depender de infraestructura de hiperescala.
 \end{abstract}
 
 %%
@@ -153,7 +167,7 @@ El proyecto se descompuso en los siguientes paquetes de trabajo principales:
     \item \textbf{1. Gestión de Datos:} Descarga de PathVQA, conversión de formatos y creación de dataloaders.
     \item \textbf{2. Ingeniería de Modelos:} Integración de TinyLlama-1.1B con CLIP-Large, adaptación de dimensiones de embeddings y configuración del tokenizador.
     \item \textbf{3. Infraestructura y Entrenamiento:} Configuración de scripts SLURM, gestión de memoria VRAM y ejecución de ciclos de entrenamiento.
-    \item \textbf{4. Aseguramiento de Calidad:} Validación de inferencia, cálculo de métricas automáticas (BLEU, ROUGE, CIDEr) y revisión manual de respuestas.
+    \item \textbf{4. Aseguramiento de Calidad:} Validación de inferencia, cálculo de métricas automáticas (Accuracy, BLEU) y revisión manual de respuestas.
     \item \textbf{5. Documentación:} Elaboración de bitácora técnica y reporte final.
 \end{itemize}
 
@@ -177,18 +191,37 @@ Para resolver esta contradicción sin comprometer la viabilidad del proyecto, se
 \end{itemize}
 
 % Revisión breve de soluciones previas similares.
-\section{Trabajos Relacionados}
+\section{Marco Teorico y Trabajos Relacionados}
 
-El campo de Visual Question Answering (VQA) en el dominio médico ha evolucionado desde enfoques basados en clasificación simple hasta sistemas generativos complejos.
+El campo de Visual Question Answering (VQA) en el dominio médico ha evolucionado drásticamente, transitando desde enfoques discriminativos rígidos hacia sistemas generativos flexibles capaces de razonar.
 
-\subsection{VQA en Patología}
-El trabajo seminal de He et al. \cite{he2020pathvqa}, creadores del dataset PathVQA, estableció los primeros baselines utilizando arquitecturas modulares que combinaban redes convolucionales (VGG, ResNet) con redes recurrentes (LSTM). Si bien estos modelos demostraron la viabilidad de la tarea, su capacidad de generalización y razonamiento era limitada, tratando el problema a menudo como una clasificación sobre un vocabulario fijo de respuestas.
+\subsection{VQA en Patología: Los Inicios}
+El trabajo seminal de He et al. \cite{he2020pathvqa}, creadores del dataset PathVQA, estableció los primeros \textit{baselines} utilizando arquitecturas modulares clásicas. Estas combinaban redes convolucionales (como VGG o ResNet) para la visión, con redes recurrentes (LSTM) para el texto. Si bien demostraron la viabilidad de la tarea, operaban bajo un paradigma de clasificación sobre un vocabulario fijo, limitando severamente su capacidad de generalización y razonamiento clínico complejo.
 
-\subsection{Modelos de Visión-Lenguaje (VLMs)}
-Recientemente, la adaptación de modelos fundacionales ha transformado el estado del arte. Arquitecturas como LLaVA (Large Language and Vision Assistant) han demostrado que proyectar características visuales de encoders robustos (como CLIP o SigLIP) al espacio de entrada de LLMs pre-entrenados (como LLaMA o Vicuna) permite un nivel de comprensión visual superior.
+% --- NUEVA SECCIÓN AGREGADA ---
+\subsection{Fundamentos del Aprendizaje Multimodal}
+Un modelo multimodal se define por su capacidad para procesar y relacionar información proveniente de distintas modalidades sensoriales (e.g., píxeles y palabras) en un espacio semántico común. El desafío central en estos sistemas es el problema de la \textbf{Alineación} (\textit{Alignment}): ¿Cómo lograr que la representación matemática de una "célula tumoral" en una imagen sea equivalente a la representación vectorial de la palabra "tumor" en el modelo de lenguaje?
 
-En el contexto médico, trabajos recientes han explorado el uso de adaptadores eficientes (LoRA, QLoRA) para ajustar estos modelos masivos a dominios específicos como la radiología y la histopatología. Sin embargo, la mayoría de estos enfoques requieren recursos computacionales significativos (múltiples GPUs A100), lo que limita su reproducibilidad en entornos con recursos restringidos. Nuestra propuesta se diferencia al demostrar la eficacia de modelos compactos (TinyLlama) para esta tarea, democratizando el acceso a estas tecnologías.
+La arquitectura general para resolver esto, utilizada en sistemas modernos, se compone de tres módulos fundamentales:
 
+\begin{itemize}
+    \item \textbf{Encoder Visual (El Ojo):} Transforma la imagen de entrada $I \in \mathbb{R}^{H \times W \times 3}$ en una secuencia de \textit{embeddings} visuales abstractos $Z_v$. Modelos como Vision Transformer (ViT) son estándar aquí por su capacidad de dividir la imagen en "parches".
+
+    \item \textbf{Adaptador o Proyector (El Puente):} Es el componente crítico que "traduce" el lenguaje visual al textual. Matemáticamente, es una función $f_\theta$ (a menudo un MLP o Q-Former) que proyecta los rasgos visuales $Z_v$ al espacio de entrada del LLM, tal que los tokens visuales proyectados $H_v = f_\theta(Z_v)$ sean indistinguibles dimensionalmente de los tokens de texto.
+
+    \item \textbf{Backbone de Lenguaje (El Cerebro):} Un LLM pre-entrenado que recibe la secuencia concatenada de tokens visuales y textuales. Gracias al mecanismo de \textit{Self-Attention}, el modelo puede "atender" a regiones específicas de la imagen mientras procesa la pregunta, generando una respuesta coherente $Y$.
+\end{itemize}
+
+Esta arquitectura permite que el modelo no solo "vea", sino que razone sobre la imagen utilizando el vasto conocimiento semántico adquirido por el LLM durante su pre-entrenamiento.
+
+% --- FIN NUEVA SECCIÓN ---
+
+\subsection{Modelos de Visión-Lenguaje (VLMs) en la Actualidad}
+Construyendo sobre los fundamentos anteriores, la adaptación de modelos fundacionales ha transformado el estado del arte. Arquitecturas paradigmáticas como \textbf{LLaVA} (Large Language and Vision Assistant) implementan esta fusión proyectando características de encoders robustos (como CLIP o SigLIP) directamente hacia LLMs potentes (como LLaMA o Vicuna).
+
+En el contexto médico, la tendencia reciente ha sido utilizar adaptadores eficientes (como LoRA o QLoRA) para "enseñar" medicina a estos modelos generales. Sin embargo, existe una barrera importante: la mayoría de estos enfoques (e.g., Med-PaLM, LLaVA-Med) dependen de recursos computacionales masivos (múltiples GPUs A100), lo que limita su reproducibilidad en hospitales o laboratorios modestos.
+
+Nuestra propuesta aborda este hueco específico: demostramos que es posible mantener la arquitectura multimodal sofisticada descrita anteriormente, pero optimizada mediante el uso de modelos compactos (\textbf{TinyLlama}) y encoders eficientes, democratizando así el acceso a herramientas de diagnóstico asistido por IA.
 
 % Descripción detallada de la colección utilizada (origen, caracterı́sticas, tamaño, formato, preprocesamiento, etc.).
 \section{Base de Datos}
@@ -208,6 +241,14 @@ Cada instancia del dataset es una tripleta compuesta por:
     \item \textbf{Respuesta:} Texto en inglés con la respuesta correcta (e.g., \textit{"in the canals of hering"}).
 \end{itemize}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{figures/muestras_eda.jpeg}
+    \caption{Ejemplos representativos del dataset PathVQA. Se muestran imágenes histopatológicas junto con sus correspondientes pares de pregunta y respuesta, ilustrando la variabilidad en tipos de tejido y complejidad de las interrogantes.}
+    \label{fig:pathvqa_samples}
+\end{figure}
+
+\newpage
 El dataset incluye dos tipos principales de preguntas:
 \begin{enumerate}
     \item \textbf{Preguntas Binarias (Yes/No):} Requieren una respuesta afirmativa o negativa.
@@ -243,13 +284,195 @@ Para adaptar este dataset a la arquitectura multimodal propuesta, se aplicaron l
 La arquitectura implementada es un modelo de Visión-Lenguaje (VLM) basado en el paradigma LLaVA (Large Language and Vision Assistant), adaptado para operar bajo restricciones estrictas de hardware. El sistema integra un encoder visual robusto con un modelo de lenguaje compacto, conectados mediante un proyector multimodal entrenable.
 
 \subsection{Arquitectura del Sistema}
-El modelo consta de tres componentes principales, ensamblados mediante una estrategia de "inyección quirúrgica" para evitar la duplicidad de parámetros:
+El modelo consta de tres componentes principales, ensamblados mediante una estrategia de "inyección quirúrgica" para evitar la duplicidad de parámetros. La Figura \ref{fig:architecture} ilustra el flujo de información a través de estos componentes.
 
 \begin{enumerate}
     \item \textbf{Encoder Visual (Ojos):} Se utilizó \textbf{CLIP-ViT-Large-Patch14-336}. Este modelo procesa imágenes de alta resolución ($336 \times 336$) y genera embeddings visuales ricos. Se seleccionó CLIP sobre SigLIP debido a su estabilidad nativa con la arquitectura LLaVA y su compatibilidad comprobada.
     \item \textbf{Proyector Multimodal (Conector):} Un Perceptrón Multicapa (MLP) con activación GELU que proyecta los embeddings visuales al espacio latente del modelo de lenguaje. Este componente es crucial para alinear las representaciones visuales con las textuales.
     \item \textbf{Modelo de Lenguaje (Cerebro):} Se implementó \textbf{TinyLlama-1.1B}, un LLM compacto pero potente. Su tamaño reducido (~1.1 billones de parámetros) permitió realizar un ajuste fino completo (Full Fine-Tuning) en una sola GPU de 24GB, evitando la necesidad de cuantización agresiva que degradaría el rendimiento.
 \end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    % Incluimos el diagrama TikZ directamente o como imagen si se prefiere compilar por separado.
+    % Aquí insertamos el código TikZ adaptado para que no sea standalone, o usamos \includegraphics si se generó el PDF.
+    % Dado que tenemos el código, lo ideal es incluirlo. Para simplificar en el main, usaremos una versión simplificada o \includegraphics.
+    % Asumiendo que el usuario quiere ver el diagrama aquí, insertaré una versión compatible.
+    \resizebox{\linewidth}{!}{
+        \begin{tikzpicture}[
+            node distance=0.8cm and 1.8cm,
+            font=\sffamily\small,
+            % --- ESTILOS ---
+            block/.style={
+                rectangle,
+                draw=black!60,
+                fill=white,
+                thick,
+                rounded corners=4pt,
+                minimum height=1.2cm,
+                text width=3.2cm,
+                align=center,
+                drop shadow
+            },
+            frozen/.style={
+                block,
+                draw=frozengray,
+                fill=papergray,
+                dashed,
+                text=frozengray
+            },
+            trainable/.style={
+                block,
+                draw=paperborder,
+                fill=paperblue,
+                very thick
+            },
+            input_node/.style={
+                rectangle,
+                rounded corners=6pt,
+                draw=black!40,
+                fill=white,
+                thick,
+                minimum height=1.0cm,
+                text width=2.5cm,
+                align=center,
+                font=\sffamily\footnotesize
+            },
+            operator/.style={
+                circle,
+                draw,
+                thick,
+                fill=white,
+                inner sep=0pt,
+                minimum size=0.8cm,
+                font=\large\bfseries
+            },
+            arrow/.style={
+                -{Stealth[length=3mm, width=2mm]},
+                thick,
+                draw=black!70,
+                rounded corners=10pt
+            }
+        ]
+
+            % =========================================================
+            % 1. VISUAL STREAM (Fila Superior) Y=3
+            % =========================================================
+
+            \node[input_node] (img_in) at (0, 4.5) {
+                \textcolor{paperborder}{\Huge\faImage} \\[0.3em]
+                \textbf{Imagen}\\
+                \scriptsize $336 \times 336$
+            };            \node[frozen, right=of img_in] (clip) {
+                \textbf{Visual Encoder}\\
+                CLIP-ViT-L\\
+                \scriptsize Patch14-336\\
+                \faLock \ \textit{Frozen}
+            };
+
+            \node[trainable, right=of clip, fill=papergreen, draw=green!40!black] (mlp) {
+                \textbf{Proyector}\\
+                MLP + GELU\\
+                \faCogs \ \textit{Trainable}
+            };
+
+            % =========================================================
+            % 2. TEXT STREAM (Fila Inferior) Y=0
+            % =========================================================
+
+            \node[input_node] (text_in) at (0, 0) {
+                \textcolor{paperborder}{\Huge\faQuestionCircle} \\[0.3em]
+                \textbf{Prompts}\\
+                \scriptsize (Preguntas)
+            };
+
+            % Tokenizer alineado horizontalmente con el MLP
+            \node[trainable, fill=white, draw=black!50, dashed] (tokenizer) at (mlp |- text_in) {
+                \textbf{Tokenizer}\\
+                \scriptsize Text Embeddings
+            };
+
+            \draw[arrow] (text_in) -- (tokenizer);
+
+            % =========================================================
+            % 3. REASONING STREAM (Extremo Derecho)
+            % =========================================================
+
+            % Concat posicionado estratégicamente
+            \node[operator, label={left:\scriptsize Concat}, right=1.5cm of mlp, yshift=-2.25cm] (concat) {$\parallel$};
+
+            % LLM
+            \node[trainable, right=0.8cm of concat, minimum height=2.5cm, fill=paperblue, text width=3.5cm] (llm) {
+                \textbf{LLM (Cerebro)}\\
+                TinyLlama-1.1B\\
+                \textit{(Full Fine-Tuning)}\\[0.5em]
+                \faCogs \ \textit{Active Learning}
+            };
+
+            % Salida
+            \node[input_node, right=0.8cm of llm] (output) {
+                \textcolor{paperborder}{\Huge\faComments} \\[0.3em]
+                \textbf{Respuesta}
+            };
+
+            % =========================================================
+            % 4. CONEXIONES
+            % =========================================================
+
+            % Visual Stream
+            \draw[arrow] (img_in) -- (clip);
+
+            % Clip -> MLP (Con fondo gris en texto para no ensuciar la flecha)
+            \draw[arrow] (clip) -- node[midway, above, font=\scriptsize, align=center, fill=bgGray, inner sep=2pt] {Embeds\\(576 tokens)} (mlp);
+
+            % MLP -> Concat
+            \draw[arrow] (mlp.east) -| (concat.north)
+                node[pos=0.25, above, font=\scriptsize\bfseries, fill=bgGray, inner sep=2pt] {Visual Tokens};
+
+            % Tokenizer -> Concat
+            \draw[arrow] (tokenizer.east) -| (concat.south)
+                node[pos=0.25, below, font=\scriptsize\bfseries, fill=bgGray, inner sep=2pt] {Text Tokens};
+
+            % Reasoning (Flecha limpia, sin texto "Secuencia Combinada")
+            \draw[arrow] (concat) -- (llm);
+
+            % Salida
+            \draw[arrow] (llm) -- (output);
+
+            % =========================================================
+            % 5. FONDOS DE GRUPO (TÍTULOS CENTRADOS ARRIBA/ABAJO)
+            % =========================================================
+
+            \begin{scope}[on background layer]
+                % Visual (Arriba) - Título centrado arriba
+                \coordinate (phantom_vis) at ($(mlp.north)+(0,0.8)$);
+                \node[fit=(img_in)(clip)(mlp)(phantom_vis), fill=bgGray, rounded corners=15pt, draw=black!10, inner sep=15pt, label={[anchor=north, inner sep=5pt, font=\bfseries\color{gray!80}]north:Visual Encoding}] (vis_bg) {};
+
+                % Text (Abajo) - Título centrado abajo (Para simetría y limpieza)
+                \coordinate (phantom_text) at ($(tokenizer.south)+(0,-0.6)$);
+                \node[fit=(text_in)(tokenizer)(phantom_text), fill=bgGray, rounded corners=15pt, draw=black!10, inner sep=15pt, label={[anchor=south, inner sep=5pt, font=\bfseries\color{gray!80}]south:Text Processing}] (text_bg) {};
+
+                % Reasoning (Derecha) - Título centrado arriba
+                \coordinate (phantom_brain) at ($(llm.north)+(0,0.8)$);
+                \node[fit=(concat)(llm)(output)(phantom_brain), fill=bgGray, rounded corners=15pt, draw=black!10, inner sep=15pt, label={[anchor=north, inner sep=5pt, font=\bfseries\color{gray!80}]north:Reasoning}] (brain_bg) {};
+            \end{scope}
+
+            % =========================================================
+            % 6. LEYENDA (Centrada abajo)
+            % =========================================================
+
+            \node[draw=black!40, rounded corners, fill=white, anchor=north] (legend) at ($(current bounding box.south) + (0, -0.3)$) {
+                \scriptsize
+                \begin{tabular}{l l}
+                     \faLock \ \textbf{Frozen:} Pesos estáticos & \faCogs \ \textbf{Trainable:} Full Fine-Tuning \\
+                \end{tabular}
+            };
+
+        \end{tikzpicture}
+    }
+    \caption{Diagrama de la arquitectura multimodal implementada. Se observa el flujo dual (visual y textual) convergiendo en el LLM TinyLlama, donde el encoder visual CLIP permanece congelado mientras el proyector y el LLM se entrenan activamente.}
+    \label{fig:architecture}
+\end{figure}
 
 \subsection{Estrategia de Entrenamiento}
 A diferencia de enfoques que utilizan adaptadores de bajo rango (LoRA), se optó por una estrategia de \textbf{Full Fine-Tuning (FFT)}.
@@ -267,14 +490,139 @@ El desarrollo se realizó utilizando \textbf{PyTorch} y la librería \textbf{Tra
     \item \textbf{Logging Offline:} Se desarrolló un sistema de callbacks personalizado (\texttt{FileLoggerCallback}) para registrar métricas en formato JSONL, independiente de servicios en la nube como WandB, inaccesibles desde el clúster.
 \end{itemize}
 
+\subsection{Métricas de Evaluación}
+Para cuantificar el desempeño del modelo, se utilizaron métricas estándar en VQA y generación de texto, adaptadas a la naturaleza del dataset PathVQA. A continuación se definen formalmente:
+
+\begin{itemize}
+    \item \textbf{Accuracy (Yes/No):} Mide la proporción de respuestas correctas en el subconjunto de preguntas binarias $Q_{binary}$. Sea $y_i$ la respuesta predicha y $\hat{y}_i$ la respuesta real para la $i$-ésima pregunta:
+    \begin{equation}
+        \text{Acc}_{Y/N} = \frac{1}{|Q_{binary}|} \sum_{i \in Q_{binary}} \mathbb{I}(y_i = \hat{y}_i)
+    \end{equation}
+    donde $\mathbb{I}(\cdot)$ es la función indicadora que vale 1 si la condición es verdadera y 0 en caso contrario.
+
+    \item \textbf{Accuracy (General):} Evalúa la coincidencia exacta (\textit{Exact Match}) entre la respuesta generada y la referencia para todo el conjunto de evaluación $Q_{total}$. Es una métrica estricta que penaliza cualquier variación sintáctica.
+    \begin{equation}
+        \text{Acc}_{Gen} = \frac{1}{|Q_{total}|} \sum_{i=1}^{|Q_{total}|} \mathbb{I}(y_i = \hat{y}_i)
+    \end{equation}
+
+    \item \textbf{Keyword Accuracy:} Una métrica más flexible diseñada para preguntas abiertas. Se considera un acierto si la respuesta generada $y_i$ contiene la palabra clave principal $k_i$ extraída de la respuesta de referencia $\hat{y}_i$.
+    \begin{equation}
+        \text{Acc}_{Key} = \frac{1}{|Q_{open}|} \sum_{i \in Q_{open}} \mathbb{I}(k_i \in y_i)
+    \end{equation}
+    Esto permite evaluar la corrección semántica incluso si la formulación difiere (e.g., "tumor cells" vs "tumor").
+
+    \item \textbf{BLEU (Bilingual Evaluation Understudy):} Evalúa la calidad de la generación de texto comparando la superposición de n-gramas entre la respuesta generada y la referencia. Se calcula como el producto de la precisión geométrica de n-gramas ($p_n$) y una penalización por brevedad (BP):
+    \begin{equation}
+        \text{BLEU} = \text{BP} \cdot \exp\left(\sum_{n=1}^{N} w_n \log p_n\right)
+    \end{equation}
+    donde $w_n$ son los pesos uniformes para cada tamaño de n-grama (usualmente $N=4$) y BP penaliza respuestas excesivamente cortas.
+\end{itemize}
+
 % Incluir métricas, visualizaciones, gráficas y tablas relevantes. Debes proponer un baseline muy sencillo para comparar los resultados.
 \section{Resultados}
+
+Se evaluó el desempeño del modelo \textbf{TinyLlama-CLIP-768} en el conjunto de validación de PathVQA. Para contextualizar los resultados, se estableció un \textit{baseline} teórico basado en la clase mayoritaria para preguntas binarias (aleatorio/frecuente $\approx 50\%$) y respuestas vacías o aleatorias para preguntas abiertas.
+
+\subsection{Métricas Cuantitativas}
+La Tabla \ref{tab:results} resume las métricas obtenidas. El modelo alcanzó una exactitud del \textbf{86.18\%} en preguntas cerradas (Yes/No), demostrando una sólida capacidad de discriminación visual. En preguntas abiertas, la exactitud exacta fue del \textbf{32.80\%}, con una exactitud por palabras clave (\textit{Keyword Accuracy}) del \textbf{57.76\%}, lo que indica que el modelo frecuentemente recupera los conceptos médicos correctos aunque la estructura sintáctica difiera de la referencia.
+
+\begin{table}[h]
+\centering
+\caption{Resultados de evaluación en el conjunto de validación (PathVQA). El modelo propuesto supera significativamente al baseline aleatorio.}
+\label{tab:results}
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{Modelo} & \textbf{Acc (Yes/No)} & \textbf{Acc (General)} & \textbf{Keyword Acc} & \textbf{BLEU} \\ \hline
+Baseline (Aleatorio) & $\sim 50.0\%$ & $< 1.0\%$ & - & - \\ \hline
+\textbf{TinyLlama-CLIP-768} & \textbf{86.18\%} & \textbf{32.80\%} & \textbf{57.76\%} & \textbf{0.022} \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Dinámica de Entrenamiento}
+La Figura \ref{fig:training_curve} muestra la evolución de la pérdida y la exactitud durante el entrenamiento. Se observa una convergencia estable, donde la exactitud en validación (línea naranja) sigue de cerca a la de entrenamiento, indicando una buena generalización sin sobreajuste severo.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/training_plot_768.png}
+    \caption{Curvas de aprendizaje del modelo. La pérdida disminuye consistentemente mientras la exactitud aumenta, estabilizándose alrededor de la época 3.}
+    \label{fig:training_curve}
+\end{figure}
+
+\subsection{Análisis Cualitativo}
+La Figura \ref{fig:samples} presenta ejemplos de inferencia del modelo. Se observa que el sistema es capaz de identificar correctamente estructuras histológicas y responder preguntas sobre tinción y morfología.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_02349.png}
+        %\caption{Ejemplo 1}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_04163.png}
+        %\caption{Ejemplo 2}
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_04770.png}
+        %\caption{Ejemplo 3}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_05335.png}
+        %\caption{Ejemplo 4}
+    \end{minipage}
+
+    \vspace{0.5cm}
+
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/sample_validation_05786.png}
+        %\caption{Ejemplo 5}
+    \end{minipage}
+
+    \caption{Muestras de predicciones del modelo en el conjunto de validación. El modelo genera respuestas coherentes alineadas con la pregunta visual.}
+    \label{fig:samples}
+\end{figure}
 
 % Análisis crı́tico de los resultados, limitaciones del enfoque y posibles lı́neas de mejora.
 \section{Discusión}
 
+Los resultados obtenidos validan la hipótesis de que es posible construir sistemas VQA competentes para el dominio médico utilizando arquitecturas compactas, siempre que se apliquen estrategias de entrenamiento adecuadas como el Full Fine-Tuning.
+
+\subsection{Análisis de Desempeño}
+El alto rendimiento en preguntas binarias (86.18\%) sugiere que el encoder CLIP-ViT-Large es eficaz para extraer características discriminativas en imágenes histopatológicas, incluso sin un ajuste fino de sus pesos (frozen). Esto confirma la robustez de las representaciones visuales pre-entrenadas de CLIP.
+
+Por otro lado, la brecha significativa entre la \textit{Accuracy General} (32.80\%) y la \textit{Keyword Accuracy} (57.76\%) resalta una limitación intrínseca de las métricas basadas en coincidencia exacta. El modelo frecuentemente genera la respuesta correcta semánticamente (e.g., "tumor cells") pero es penalizado por no coincidir palabra por palabra con la referencia (e.g., "tumor"). Esto indica que el modelo ha aprendido los conceptos médicos, pero requiere un refinamiento en la generación de lenguaje para alinearse con el estilo conciso del dataset.
+
+\subsection{Limitaciones Técnicas}
+A pesar del éxito en la implementación, el enfoque presenta limitaciones claras:
+\begin{itemize}
+    \item \textbf{Resolución Visual:} La entrada de $336 \times 336$ píxeles, impuesta por la arquitectura de CLIP, puede ser insuficiente para detectar patologías que dependen de detalles celulares finos o texturas sutiles a gran aumento.
+    \item \textbf{Capacidad del LLM:} Aunque TinyLlama es eficiente, su capacidad de razonamiento complejo es inferior a modelos de 7B+ parámetros. Esto se refleja en el bajo puntaje BLEU (0.022), sugiriendo dificultades para construir oraciones largas y gramaticalmente complejas que coincidan con las referencias.
+    \item \textbf{Sesgo del Dataset:} PathVQA tiene un desbalance hacia preguntas de tipo "Sí/No". Si bien el modelo maneja bien este tipo, su capacidad generativa en preguntas abiertas ("Open-ended") aún tiene margen de mejora.
+\end{itemize}
+
+\subsection{Líneas de Mejora Futura}
+Para superar estas barreras en iteraciones futuras, se proponen las siguientes estrategias:
+\begin{enumerate}
+    \item \textbf{Encoders de Mayor Resolución:} Explorar variantes de CLIP o SigLIP que soporten resoluciones mayores (e.g., $448^2$ o estrategias de \textit{tiling}) para capturar mejor la morfología celular.
+    \item \textbf{Métricas Semánticas:} Incorporar métricas de evaluación basadas en embeddings (como BERTScore) o evaluación asistida por LLMs (LLM-as-a-judge) para valorar la corrección semántica de las respuestas más allá de la coincidencia exacta.
+    \item \textbf{Data Augmentation:} Implementar técnicas de aumento de datos específicas para VQA (e.g., reformulación de preguntas, rotación de imágenes) para mejorar la robustez y generalización del modelo.
+\end{enumerate}
+
 % Sı́ntesis final de hallazgos y aportaciones.
 \section{Conclusiones}
+
+Este proyecto ha demostrado la viabilidad técnica y práctica de desarrollar sistemas de Visual Question Answering para el dominio histopatológico en entornos de cómputo restringidos. La principal aportación de este trabajo reside en la validación de una arquitectura eficiente que combina un modelo de lenguaje compacto (\textbf{TinyLlama-1.1B}) con un encoder visual robusto (\textbf{CLIP-ViT-Large}), logrando un equilibrio óptimo entre rendimiento y consumo de recursos.
+
+Los hallazgos experimentales indican que no es estrictamente necesario recurrir a modelos masivos (como LLaMA-3 8B o GPT-4) para obtener resultados competentes en tareas especializadas. Con una exactitud del \textbf{86.18\%} en preguntas binarias y una capacidad notable para recuperar conceptos clave en preguntas abiertas (\textbf{57.76\%}), el modelo propuesto se perfila como una herramienta de asistencia preliminar útil para la educación y el triaje en patología digital.
+
+Finalmente, la superación de los desafíos de infraestructura mediante la aplicación de principios de ingeniería (Gradient Accumulation, gestión de memoria) y metodología TRIZ subraya la importancia de la optimización de software sobre la fuerza bruta del hardware. Este enfoque democratiza el acceso a la inteligencia artificial médica, permitiendo que laboratorios con recursos limitados puedan investigar y desplegar soluciones de vanguardia.
 
 % Bajo un formato académico uniforme (APA o IEEE).
 \bibliography{refs.bib}
